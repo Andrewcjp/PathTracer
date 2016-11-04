@@ -1,0 +1,14 @@
+﻿################################################################################
+# This .gitignore file was automatically created by Microsoft(R) Visual Studio.
+################################################################################
+
+
+/Debug/*
+/x64/*
+/TinyRay/x64/*
+/TinyRay/x64/debug/*
+/TinyRay/x64/release/*
+
+/TinyRay.sdf
+/TinyRay.VC.db
+/TinyRay.VC.VC.opendb
