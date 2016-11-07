@@ -11,7 +11,7 @@
 #include "AppWindow.h"
 #include "Resource.h"
 #include <Windowsx.h>
-
+#include <time.h>
 TestApplication* TestApplication::s_oglapp = NULL;
 
 TestApplication::TestApplication()

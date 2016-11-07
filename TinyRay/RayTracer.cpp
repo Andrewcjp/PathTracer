@@ -92,7 +92,7 @@ void RayTracer::DoRayTrace(Scene* pScene)
 	if (m_renderCount == 0)
 	{
 		fprintf(stdout, "Trace start.\n");
-
+		clock_t tstart = clock();
 		glClearColor(0.0, 0.0, 0.0, 0.0);
 		glClear(GL_COLOR_BUFFER_BIT);
 		Colour colour;
@@ -142,7 +142,7 @@ void RayTracer::DoRayTrace(Scene* pScene)
 				m_framebuffer->WriteRGBToFramebuffer(colour, j, i);
 			}
 		}
-
+		printf("Time taken: %.00fms\n", (double)(clock() - tstart) * 1000 / CLOCKS_PER_SEC);
 		fprintf(stdout, "Done!!!\n");
 		m_renderCount++;
 	}
@@ -188,7 +188,7 @@ Colour RayTracer::TraceScene(Scene* pScene, Ray& ray, Colour incolour, int trace
 					reft = TraceScene(pScene, reflectRay, outcolour, tracelevel);
 				}
 				Reflection = reft *prim->GetMaterial()->GetDiffuseColour();
-				outcolour = reft *prim->GetMaterial()->GetDiffuseColour();
+				//outcolour = reft *prim->GetMaterial()->GetDiffuseColour();
 			}
 		}
 
@@ -205,7 +205,8 @@ Colour RayTracer::TraceScene(Scene* pScene, Ray& ray, Colour incolour, int trace
 					//a_Acc += refl * rcol * prim->GetMaterial()->GetColor();
 					reft = TraceScene(pScene, refractRay, outcolour, tracelevel);
 				}
-				Colour absorbance = prim->GetMaterial()->GetDiffuseColour() * 0.15f * -1;
+				//apply beers law so that the material changes the light intesity				
+				Colour absorbance = prim->GetMaterial()->GetDiffuseColour() * 0.15f * pScene->IntersectByRay(refractRay).t;//distance into material
 				Colour transparency = Colour(expf(absorbance[0]),
 					expf(absorbance[1]),
 					expf(absorbance[2]));
@@ -213,7 +214,7 @@ Colour RayTracer::TraceScene(Scene* pScene, Ray& ray, Colour incolour, int trace
 				Refraction = (reft*transparency) *prim->GetMaterial()->GetSpecularColour()*prim->GetMaterial()->GetDiffuseColour();// *0.8f;
 			}
 		}
-
+		//todo: this looks wrong?
 		outcolour = CalculateLighting(light_list, &cameraPosition, &result) + Reflection + Refraction;
 		if (m_traceflag & TRACE_SHADOW)
 		{
@@ -226,6 +227,7 @@ Colour RayTracer::TraceScene(Scene* pScene, Ray& ray, Colour incolour, int trace
 			Vector3 bias = dir * 0.0001;
 			shadowray.SetRay(result.point + bias, dir);
 			result = pScene->IntersectByRay(shadowray);
+			//pcf?
 			if (result.data) {
 				//we hit something
 				if (((Primitive*)result.data)->GetMaterial()->CastShadow() == true) {
@@ -249,20 +251,12 @@ Colour RayTracer::CalculateLighting(std::vector<Light*>* lights, Vector3* campos
 
 	outcolour = mat->GetAmbientColour();
 	Colour CurrentDiffuse;
-	
-	//Generate the grid pattern on the plane
-	/*
-	else {*/
-		if (m_traceflag & TRACE_DIFFUSE_AND_SPEC) {
-			CurrentDiffuse = prim->GetDiffuseColour(hitresult->point);
-			if (mat->HasDiffuseTexture() == true) {
-				//calculate Uvs
-				/*m_UAxis = vector3(m_Plane.N.y, m_Plane.N.z, -m_Plane.N.x);
-				m_VAxis = m_UAxis.Cross(m_Plane.N);*/
-				CurrentDiffuse = prim->GetDiffuseColour(hitresult->point);
-			}
-		}
-//	}
+
+
+	if (m_traceflag & TRACE_DIFFUSE_AND_SPEC) {
+		CurrentDiffuse = prim->GetDiffuseColour(hitresult->point);
+	}
+
 
 	////Go through all lights in the scene
 	////Note the default scene only has one light source
@@ -272,31 +266,35 @@ Colour RayTracer::CalculateLighting(std::vector<Light*>* lights, Vector3* campos
 		//TODO: Calculate and apply the lighting of the intersected object using the illumination model covered in the lecture
 		//i.e. diffuse using Lambertian model, for specular, you can use either Phong or Blinn-Phong model
 		Light* clight = *lit_iter;
-		Vector3 diff = clight->GetLightPosition() - hitresult->point;
+		Vector3 diff = (clight->GetLightPosition() - hitresult->point);
 		float distance = sqrtf(diff.DotProduct(diff));
-
+		Vector3 normal = hitresult->normal.Normalise();
 		Vector3 lightdir = (clight->GetLightPosition() - hitresult->point).Normalise();
-		float diffuseamt = max(lightdir.DotProduct(hitresult->normal.Normalise()), 0.0);
-		diffuseamt = min(max(diffuseamt, 0), 1);
-		//bhlim-phong
-		Vector3 H = (lightdir + *campos).Normalise();//half vector
-		float ndotH = max(hitresult->normal.Normalise().DotProduct(H), 0.0);
-		float specular = pow(ndotH, mat->GetSpecPower());
-		specular = min(max(specular, 0), 1);
+		float diffuseamt = max(lightdir.DotProduct(normal), 0.0);
+		float specular = 0;
+		if (diffuseamt > 0.0) {
+			//diffuseamt = (max(diffuseamt, 0), 1);
+			//bhlim-phong
+			Vector3 H = (lightdir + *campos).Normalise();//half vector
+			float ndotH = max(H.DotProduct(normal), 0.0);
+			specular = pow(ndotH, mat->GetSpecPower());
+			//specular = min(max(specular, 0), 1);
+		}
 		//not used?
-		float cosTheta = hitresult->normal.DotProduct(lightdir);//normal and light
-		float cosAlpha = campos->DotProduct(hitresult->normal);
+		//float cosTheta =max( hitresult->normal.DotProduct(lightdir),0.5);//normal and light
+		//float cosAlpha = min(max(campos->DotProduct(r), 0), 1);
 		//std::clamp(0, 1, 1); not yet in C++17!
 		Linearcol = mat->GetAmbientColour()
-			+ CurrentDiffuse * clight->GetLightColour()  * diffuseamt /** (cosTheta / (distance*distance))*/
-			+ mat->GetSpecularColour() * clight->GetLightColour()  *  specular /** (pow(cosAlpha, 5) / (distance*distance))*/;
+			+ (CurrentDiffuse * clight->GetLightColour()  * diffuseamt)
+			+ (mat->GetSpecularColour() * clight->GetLightColour()  *  specular);
 		outcolour = Linearcol;
 		//apply gamma correction
 		outcolour[0] = pow(Linearcol[0], 1.0 / Gamma);
 		outcolour[1] = pow(Linearcol[1], 1.0 / Gamma);
 		outcolour[2] = pow(Linearcol[2], 1.0 / Gamma);
 	}
-	else {
+	else
+	{
 		outcolour = CurrentDiffuse;
 	}
 

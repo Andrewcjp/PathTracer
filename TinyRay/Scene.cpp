@@ -58,7 +58,7 @@ void Scene::InitDefaultScene()
 	newmat->SetSpecularColour(0.0, 0.0, 0.0);
 
 	Texture* t = new Texture();
-	t->LoadTextureFromFile("C:\\Users\\AANdr\\Dropbox\\UNI\\Year2\\TinyRay\\Test.bmp");
+	t->LoadTextureFromFile("C:\\Users\\AANdr\\Dropbox\\UNI\\Year2\\repo\\tinyray\\Test.bmp");
 
 	newmat->SetDiffuseTexture(t);
 	newmat->SetSpecPower(10);

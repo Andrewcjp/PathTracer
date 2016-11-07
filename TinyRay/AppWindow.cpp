@@ -10,7 +10,7 @@
 #include "AppWindow.h"
 #include "Resource.h"
 #include <gl/GL.h>
-
+#include <time.h>
 
 
 AppWindow::AppWindow()
@@ -142,9 +142,10 @@ void AppWindow::SetVisible ( BOOL visible )
 
 void AppWindow::Render()
 {
+	
 	Colour *pBuffer = m_pRayTracer->GetFramebuffer()->GetBuffer();
 	m_pRayTracer->DoRayTrace(m_pScene);
-
+	
 	glDrawPixels(m_width, m_height, GL_RGB, GL_FLOAT, pBuffer);
 
 	glFlush();
