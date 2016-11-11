@@ -58,10 +58,10 @@ void Scene::InitDefaultScene()
 	newmat->SetSpecularColour(0.0, 0.0, 0.0);
 
 	Texture* t = new Texture();
-	//t->LoadTextureFromFile("C:\\Users\\AANdr\\Dropbox\\UNI\\Year2\\repo\\tinyray\\Test.bmp");
-	t->LoadTextureFromFile("T:\\Documents\\1\\tinyray\\Test.bmp");//N_Brick
+	t->LoadTextureFromFile("C:\\Users\\AANdr\\Dropbox\\UNI\\Year2\\repo\\tinyray\\Test.bmp");
+//	t->LoadTextureFromFile("T:\\Documents\\1\\tinyray\\Test.bmp");//N_Brick
 	Texture* normalt = new Texture();
-	normalt->LoadTextureFromFile("T:\\Documents\\1\\tinyray\\N_Brick.bmp");
+	normalt->LoadTextureFromFile("C:\\Users\\AANdr\\Dropbox\\UNI\\Year2\\repo\\tinyray\\N_Brick.bmp");
 
 	newmat->SetDiffuseTexture(t);
 	newmat->SetNormalTexture(normalt);
@@ -79,6 +79,17 @@ void Scene::InitDefaultScene()
 	newmat = new Material();
 	newmat->SetAmbientColour(0.0, 0.0, 0.0);
 	newmat->SetDiffuseColour(0.0, 0.8, 0.0);
+	newmat->SetSpecularColour(1.0, 1.0, 1.0);
+	newmat->SetSpecPower(2);
+	newobj->SetMaterial(newmat);
+	m_sceneObjects.push_back(newobj);
+	m_objectMaterials.push_back(newmat);
+
+	//Create sphere 4 and its material
+	newobj = new Sphere(-10.0, 2, -3.5, 2.0); //sphere 2
+	newmat = new Material();
+	newmat->SetAmbientColour(0.0, 0.0, 0.0);
+	newmat->SetDiffuseColour(1.0, 1.0, 1.0);
 	newmat->SetSpecularColour(1.0, 1.0, 1.0);
 	newmat->SetSpecPower(2);
 	newobj->SetMaterial(newmat);

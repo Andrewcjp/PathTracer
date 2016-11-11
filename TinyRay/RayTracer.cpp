@@ -30,7 +30,7 @@
 #include "perlin.h"
 //assume the monitor is sRGB
 #define Gamma 2.2
-#define MAX_DEPTH 6
+#define MAX_DEPTH 5
 RayTracer::RayTracer()
 {
 	m_buffHeight = m_buffWidth = 0.0;
@@ -102,43 +102,58 @@ void RayTracer::DoRayTrace(Scene* pScene)
 			for (int j = 0; j < m_buffWidth; j += 1) {
 				colour = Colour(0, 0, 0);
 				float SSAAF = 2;
-				//	for (float tx = -1; tx < SSAAF; tx++) for (float ty = -1; ty < SSAAF; ty++) {
-						//calculate the metric size of a pixel in the view plane (e.g. framebuffer)
-				Vector3 pixel;
 
-				pixel[0] = start[0] + (i + 0.5) * camUpVector[0] * pixelDY
-					+ (j + 0.5) * camRightVector[0] * pixelDX;
+				//calculate the metric size of a pixel in the view plane (e.g. framebuffer)
+				float amt = 4;
+				float diffrenceamt = 1;
+				for (int x = 0; x < 2; x++) {
+					for (int y = 0; y < 2; y++) {
+						Vector3 pixel;
+						float Xadd = -diffrenceamt;
+						float Yadd = -diffrenceamt;
+						if (x > 0) {
+							//second pass move over 1
+							Xadd = diffrenceamt;
+						}
+						if (y > 0) {
+							//second pass move over 1
+							Yadd = diffrenceamt;
+						}
+						pixel[0] = start[0] + (i + Xadd + 0.5) * camUpVector[0] * pixelDY
+							+ (j + Yadd + 0.5) * camRightVector[0] * pixelDX;
+						pixel[1] = start[1] + (i + Xadd + 0.5) * camUpVector[1] * pixelDY
+							+ (j + Yadd + 0.5) * camRightVector[1] * pixelDX;
+						pixel[2] = start[2] + (i + Xadd + 0.5) * camUpVector[2] * pixelDY
+							+ (j + Yadd + 0.5) * camRightVector[2] * pixelDX;
 
-				pixel[1] = start[1] + (i + 0.5) * camUpVector[1] * pixelDY
-					+ (j + 0.5) * camRightVector[1] * pixelDX;
-				pixel[2] = start[2] + (i + 0.5) * camUpVector[2] * pixelDY
-					+ (j + 0.5) * camRightVector[2] * pixelDX;
+						/*
+						* setup first generation view ray
+						* In perspective projection, each view ray originates from the eye (camera) position
+						* and pierces through a pixel in the view plane
+						*/
+						Ray viewray;
+						viewray.SetRay(camPosition, (pixel - camPosition).Normalise());
 
-				/*
-				* setup first generation view ray
-				* In perspective projection, each view ray originates from the eye (camera) position
-				* and pierces through a pixel in the view plane
-				*/
-				Ray viewray;
-				viewray.SetRay(camPosition, (pixel - camPosition).Normalise());
+						double u = (double)j / (double)m_buffWidth;
+						double v = (double)i / (double)m_buffHeight;
 
-				double u = (double)j / (double)m_buffWidth;
-				double v = (double)i / (double)m_buffHeight;
-
-				scenebg = pScene->GetBackgroundColour();
-				//TODO:supersampling!
-				//trace the scene using the view ray
-				//default colour is the background colour, unless something is hit along the way
-				colour = this->TraceScene(pScene, viewray, scenebg, m_traceLevel);
+						scenebg = pScene->GetBackgroundColour();
+						//TODO:supersampling!
+						//trace the scene using the view ray
+						//default colour is the background colour, unless something is hit along the way
+						colour = colour + this->TraceScene(pScene, viewray, scenebg, m_traceLevel);
+					}
+				}
 				currentdepth = 0;
 				//	}
-					//	colour = 4.0 /colour / ;
-						/*colour[0] = colour[0] / 4;
-						colour[1] = colour[1] / 4;
-						colour[2] = colour[2] / 4;*/
-						/*
-						* Draw the pixel as a coloured rectangle
-						*/
+				//	colour = 4.0 /colour / ;
+
+				colour[0] = colour[0] / amt;
+				colour[1] = colour[1] / amt;
+				colour[2] = colour[2] / amt;
+				/*
+				* Draw the pixel as a coloured rectangle
+				*/
 				m_framebuffer->WriteRGBToFramebuffer(colour, j, i);
 			}
 		}
@@ -176,21 +191,19 @@ Colour RayTracer::TraceScene(Scene* pScene, Ray& ray, Colour incolour, int trace
 		{
 			//TODO: trace the reflection ray from the intersection point
 			if (prim->GetMaterial()->GetSpecularColour().Norm() > 0.0f) {
-				Ray reflectRay = Ray();
-
-				//Vector3 rray = ray.GetRay() - result.normal* (2.0 * (ray.GetRay().DotProduct(result.normal)));
-				Vector3 rray = ray.GetRay().Reflect(result.normal);
-				Vector3 bias = rray.Normalise() * 0.05f;
-				reflectRay.SetRay(result.point + bias, rray);
-				Vector3 reft;
 				if (tracelevel > 1) {
+					Ray reflectRay = Ray();
+					//Vector3 rray = ray.GetRay() - result.normal* (2.0 * (ray.GetRay().DotProduct(result.normal)));
+					Vector3 rray = ray.GetRay().Reflect(result.normal);
+					Vector3 bias = rray.Normalise() * 0.05f;
+					reflectRay.SetRay(result.point + bias, rray);
+					Vector3 reft;
 					//a_Acc += refl * rcol * prim->GetMaterial()->GetColor();
 					reft = TraceScene(pScene, reflectRay, outcolour, tracelevel);
+					Reflection = reft *prim->GetMaterial()->GetDiffuseColour();
+					prim->SetRelfection(Reflection);
+					outcolour = CalculateLighting(light_list, &cameraPosition, &result);
 				}
-
-				Reflection = reft *prim->GetMaterial()->GetDiffuseColour();
-				prim->SetRelfection(Reflection);
-				outcolour = reft *prim->GetMaterial()->GetDiffuseColour();
 			}
 		}
 
@@ -198,35 +211,32 @@ Colour RayTracer::TraceScene(Scene* pScene, Ray& ray, Colour incolour, int trace
 		{
 			//TODO: trace the refraction ray from the intersection point
 			if (prim->GetMaterial()->GetSpecularColour().Norm() > 0.0f) {
-				Ray refractRay = Ray();
-				Vector3 raray = ray.GetRay().Normalise().Refract(result.normal.Normalise(), (1.0 / 1.1));
-				Vector3 bias = raray * 0.01;
-				refractRay.SetRay(result.point + bias, raray);
-				Vector3 reft;
 				if (tracelevel > 1) {
-					//a_Acc += refl * rcol * prim->GetMaterial()->GetColor();
-					reft = TraceScene(pScene, refractRay, outcolour, tracelevel);
-				}
-				//apply beers law so that the material changes the light intesity				
-				Colour absorbance = prim->GetMaterial()->GetDiffuseColour() * 0.15f * pScene->IntersectByRay(refractRay).t;//distance into material
-				Colour transparency = Colour(expf(absorbance[0]),
-					expf(absorbance[1]),
-					expf(absorbance[2]));
+					Ray refractRay = Ray();
+					Vector3 raray = ray.GetRay().Normalise().Refract(result.normal.Normalise(), (1.0 / 1.1));
+					Vector3 bias = raray * 0.01;
+					refractRay.SetRay(result.point + bias, raray);
+					Vector3 reft;
+					if (tracelevel > 1) {
+						//a_Acc += refl * rcol * prim->GetMaterial()->GetColor();
+						reft = TraceScene(pScene, refractRay, outcolour, tracelevel);
+					}
+					//apply beers law so that the material changes the light intesity				
+					Colour absorbance = prim->GetMaterial()->GetDiffuseColour() * 0.15f * pScene->IntersectByRay(refractRay).t;//distance into material
+					Colour transparency = Colour(expf(absorbance[0]),
+						expf(absorbance[1]),
+						expf(absorbance[2]));
 
-				Refraction = (reft)*prim->GetMaterial()->GetSpecularColour()+(prim->GetMaterial()->GetDiffuseColour() *0.1f);// *0.8f;
-				outcolour = (reft)*prim->GetMaterial()->GetSpecularColour()+(prim->GetMaterial()->GetDiffuseColour() *0.1f);// *0.8f;
-				if (m_traceflag & TRACE_REFLECTION) {
-					outcolour = outcolour + (Reflection *0.5f);
+					Refraction = (reft)*prim->GetMaterial()->GetSpecularColour() + (prim->GetMaterial()->GetDiffuseColour() *0.1f);// *0.8f;
+					outcolour = (reft)*prim->GetMaterial()->GetSpecularColour() + (prim->GetMaterial()->GetDiffuseColour() *0.1f);// *0.8f;
+					if (m_traceflag & TRACE_REFLECTION) {
+						outcolour = outcolour + (Reflection *0.5f);
+					}
 				}
 			}
 		}
-
-
-		//todo: this looks wrong?
-
 		if (m_traceflag & TRACE_SHADOW)
 		{
-
 			//TODO: trace the shadow ray from the intersection point	
 			std::vector<Light*>::iterator lit_iter = light_list->begin();
 			Light* clight = *lit_iter;
@@ -259,7 +269,7 @@ Colour RayTracer::CalculateLighting(std::vector<Light*>* lights, Vector3* campos
 	Colour outcolour;
 	Colour Linearcol;
 	std::vector<Light*>::iterator lit_iter = lights->begin();
-	
+
 	Primitive* prim = (Primitive*)hitresult->data;
 	Material* mat = prim->GetMaterial();
 
@@ -267,9 +277,9 @@ Colour RayTracer::CalculateLighting(std::vector<Light*>* lights, Vector3* campos
 	Colour CurrentDiffuse = mat->GetAmbientColour();
 	if (m_traceflag & TRACE_DIFFUSE_AND_SPEC) {
 		CurrentDiffuse = prim->GetDiffuseColour(hitresult->point);
-		//if (mat->GetSpecularColour().Norm() > 0.1) {
-		////	CurrentDiffuse = prim->GetRelfectionColour();
-		//}
+		if ((m_traceflag & TRACE_REFLECTION) && mat->GetSpecularColour().Norm() > 0.1) {
+			CurrentDiffuse = prim->GetRelfectionColour();
+		}
 	}
 	bool blinn = false;
 	////Go through all lights in the scene
@@ -283,10 +293,10 @@ Colour RayTracer::CalculateLighting(std::vector<Light*>* lights, Vector3* campos
 		Vector3 diff = (clight->GetLightPosition() - hitresult->point);
 		float distance = sqrtf(diff.DotProduct(diff));
 		Vector3 normal;
-		if (normalmapping && (mat->HasNormalTexture() == true)) {			
+		if (normalmapping && (mat->HasNormalTexture() == true)) {
 			normal = prim->GetNormalColour(hitresult->point).Normalise();
 		}
-		else 
+		else
 		{
 			normal = hitresult->normal.Normalise();
 		}
@@ -318,7 +328,6 @@ Colour RayTracer::CalculateLighting(std::vector<Light*>* lights, Vector3* campos
 			Vector3 invlightdir = lightdir*-1.0;
 			Vector3 R = invlightdir.Reflect(normal).Normalise();
 			//R = R * -1;
-
 			specular = pow(max(eyepos.DotProduct(R), 0.0), mat->GetSpecPower());
 		}
 		//specular = min(max(specular, 0), 1);
