@@ -105,7 +105,7 @@ void RayTracer::DoRayTrace(Scene* pScene)
 
 				//calculate the metric size of a pixel in the view plane (e.g. framebuffer)
 				float amt = 4;
-				float diffrenceamt = 1;
+				float diffrenceamt = 0.3;
 				for (int x = 0; x < 2; x++) {
 					for (int y = 0; y < 2; y++) {
 						Vector3 pixel;
@@ -265,7 +265,7 @@ Vector3 TimesMat(Vector3 target, Vector3 bitangent, Vector3 tangent, Vector3 nor
 }
 Colour RayTracer::CalculateLighting(std::vector<Light*>* lights, Vector3* campos, RayHitResult* hitresult)
 {
-	bool normalmapping = true;
+	bool normalmapping = false;
 	Colour outcolour;
 	Colour Linearcol;
 	std::vector<Light*>::iterator lit_iter = lights->begin();

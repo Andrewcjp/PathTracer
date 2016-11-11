@@ -61,8 +61,9 @@ public:
 		int texel_stride = mChannels;
 		int row_stride = mWidth;
 		int texel_loc = (dx*texel_stride) + dy*row_stride*texel_stride;
+		//todo: this might be unsafe!
 		if (texel_loc > msize -1) {
-			texel_loc = msize -1;
+			texel_loc -= msize;//clamp
 		}
 		unsigned char* comp = mImage + texel_loc;
 		//bmp not rgb
