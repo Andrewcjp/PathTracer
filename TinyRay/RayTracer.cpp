@@ -30,7 +30,7 @@
 #include "perlin.h"
 //assume the monitor is sRGB
 #define Gamma 2.2
-#define MAX_DEPTH 5
+#define MAX_DEPTH 6
 RayTracer::RayTracer()
 {
 	m_buffHeight = m_buffWidth = 0.0;
@@ -154,7 +154,7 @@ Colour RayTracer::TraceScene(Scene* pScene, Ray& ray, Colour incolour, int trace
 	RayHitResult result;
 	tracelevel--;
 	Colour outcolour = incolour; //the output colour based on the ray-primitive intersection
-	Colour Reflection;
+	Colour Reflection;// = Colour(1.0f, 1.0f, 1.0f);
 	Colour Refraction;
 	std::vector<Light*> *light_list = pScene->GetLightList();
 	Vector3 cameraPosition = pScene->GetSceneCamera()->GetPosition();
@@ -170,7 +170,7 @@ Colour RayTracer::TraceScene(Scene* pScene, Ray& ray, Colour incolour, int trace
 		//TODO:1. Non-recursive ray tracing:
 		//	 When a ray intersect with an objects, determine the colour at the intersection point
 		//	 using CalculateLighting
-
+		outcolour = CalculateLighting(light_list, &cameraPosition, &result);
 		//TODO: 2. The following conditions are for implementing recursive ray tracing
 		if (m_traceflag & TRACE_REFLECTION)
 		{
@@ -187,8 +187,10 @@ Colour RayTracer::TraceScene(Scene* pScene, Ray& ray, Colour incolour, int trace
 					//a_Acc += refl * rcol * prim->GetMaterial()->GetColor();
 					reft = TraceScene(pScene, reflectRay, outcolour, tracelevel);
 				}
+
 				Reflection = reft *prim->GetMaterial()->GetDiffuseColour();
-				//outcolour = reft *prim->GetMaterial()->GetDiffuseColour();
+				prim->SetRelfection(Reflection);
+				outcolour = reft *prim->GetMaterial()->GetDiffuseColour();
 			}
 		}
 
@@ -211,11 +213,17 @@ Colour RayTracer::TraceScene(Scene* pScene, Ray& ray, Colour incolour, int trace
 					expf(absorbance[1]),
 					expf(absorbance[2]));
 
-				Refraction = (reft*transparency) *prim->GetMaterial()->GetSpecularColour()*prim->GetMaterial()->GetDiffuseColour();// *0.8f;
+				Refraction = (reft)*prim->GetMaterial()->GetSpecularColour()+(prim->GetMaterial()->GetDiffuseColour() *0.1f);// *0.8f;
+				outcolour = (reft)*prim->GetMaterial()->GetSpecularColour()+(prim->GetMaterial()->GetDiffuseColour() *0.1f);// *0.8f;
+				if (m_traceflag & TRACE_REFLECTION) {
+					outcolour = outcolour + (Reflection *0.5f);
+				}
 			}
 		}
+
+
 		//todo: this looks wrong?
-		outcolour = CalculateLighting(light_list, &cameraPosition, &result) + Reflection + Refraction;
+
 		if (m_traceflag & TRACE_SHADOW)
 		{
 
@@ -239,25 +247,31 @@ Colour RayTracer::TraceScene(Scene* pScene, Ray& ray, Colour incolour, int trace
 
 	return outcolour;
 }
-
+Vector3 TimesMat(Vector3 target, Vector3 bitangent, Vector3 tangent, Vector3 normal) {
+	target[0] = tangent.Normalise().DotProduct(target);
+	target[1] = bitangent.Normalise().DotProduct(target);
+	target[2] = normal.Normalise().DotProduct(target);
+	return target;
+}
 Colour RayTracer::CalculateLighting(std::vector<Light*>* lights, Vector3* campos, RayHitResult* hitresult)
 {
+	bool normalmapping = true;
 	Colour outcolour;
 	Colour Linearcol;
 	std::vector<Light*>::iterator lit_iter = lights->begin();
-
+	
 	Primitive* prim = (Primitive*)hitresult->data;
 	Material* mat = prim->GetMaterial();
 
 	outcolour = mat->GetAmbientColour();
-	Colour CurrentDiffuse;
-
-
+	Colour CurrentDiffuse = mat->GetAmbientColour();
 	if (m_traceflag & TRACE_DIFFUSE_AND_SPEC) {
 		CurrentDiffuse = prim->GetDiffuseColour(hitresult->point);
+		//if (mat->GetSpecularColour().Norm() > 0.1) {
+		////	CurrentDiffuse = prim->GetRelfectionColour();
+		//}
 	}
-
-
+	bool blinn = false;
 	////Go through all lights in the scene
 	////Note the default scene only has one light source
 	if (m_traceflag & TRACE_DIFFUSE_AND_SPEC)
@@ -268,25 +282,51 @@ Colour RayTracer::CalculateLighting(std::vector<Light*>* lights, Vector3* campos
 		Light* clight = *lit_iter;
 		Vector3 diff = (clight->GetLightPosition() - hitresult->point);
 		float distance = sqrtf(diff.DotProduct(diff));
-		Vector3 normal = hitresult->normal.Normalise();
-		Vector3 lightdir = (clight->GetLightPosition() - hitresult->point).Normalise();
+		Vector3 normal;
+		if (normalmapping && (mat->HasNormalTexture() == true)) {			
+			normal = prim->GetNormalColour(hitresult->point).Normalise();
+		}
+		else 
+		{
+			normal = hitresult->normal.Normalise();
+		}
+
+		Vector3 tangent = normal.CrossProduct(prim->GetUAxis().Normalise());//todo: might need to be V axis here to get the bittangent along the U axis
+		Vector3 bitangent = tangent.CrossProduct(normal);
+		Vector3 eyepos = campos->Normalise();
+		Vector3 lightpos = clight->GetLightPosition();
+		Vector3 pos = hitresult->point;
+		//convert opsitions to TBN
+		if (normalmapping && (mat->HasNormalTexture() == true)) {
+			lightpos = TimesMat(lightpos, bitangent, tangent, normal);
+			eyepos = TimesMat(eyepos, bitangent, tangent, normal);
+			pos = TimesMat(pos, bitangent, tangent, normal);
+			CurrentDiffuse = prim->GetDiffuseColour(pos);
+		}
+		Vector3 lightdir = (lightpos - pos).Normalise();
 		float diffuseamt = max(lightdir.DotProduct(normal), 0.0);
 		float specular = 0;
-		if (diffuseamt > 0.0) {
-			//diffuseamt = (max(diffuseamt, 0), 1);
-			//bhlim-phong
-			Vector3 H = (lightdir + *campos).Normalise();//half vector
-			float ndotH = max(H.DotProduct(normal), 0.0);
+
+		//diffuseamt = (max(diffuseamt, 0), 1);
+		//bhlim-phong
+		if (blinn) {
+			Vector3 H = (lightdir + eyepos).Normalise();//half vector
+			float ndotH = max(normal.DotProduct(H), 0.0);
 			specular = pow(ndotH, mat->GetSpecPower());
-			//specular = min(max(specular, 0), 1);
 		}
-		//not used?
-		//float cosTheta =max( hitresult->normal.DotProduct(lightdir),0.5);//normal and light
-		//float cosAlpha = min(max(campos->DotProduct(r), 0), 1);
-		//std::clamp(0, 1, 1); not yet in C++17!
+		else {
+			Vector3 invlightdir = lightdir*-1.0;
+			Vector3 R = invlightdir.Reflect(normal).Normalise();
+			//R = R * -1;
+
+			specular = pow(max(eyepos.DotProduct(R), 0.0), mat->GetSpecPower());
+		}
+		//specular = min(max(specular, 0), 1);
+
 		Linearcol = mat->GetAmbientColour()
 			+ (CurrentDiffuse * clight->GetLightColour()  * diffuseamt)
 			+ (mat->GetSpecularColour() * clight->GetLightColour()  *  specular);
+
 		outcolour = Linearcol;
 		//apply gamma correction
 		outcolour[0] = pow(Linearcol[0], 1.0 / Gamma);

@@ -30,5 +30,12 @@ class Plane : public Primitive
 		}
 		void SetPlane(const Vector3 & normal, double offset, bool pattern = false);
 		Colour GetDiffuseColour(Vector3 point);
+		Colour GetNormalColour(Vector3 point);
+		inline Vector3 GetUAxis() {
+			return UAxis;
+		}
+		inline Vector3 GetVAxis() {
+			return VAxis;
+		}
 };
 

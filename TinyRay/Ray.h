@@ -10,9 +10,8 @@
 #pragma once
 
 #include "Vector3.h"
-
+#include "Ray.h"
 #define FARFAR_AWAY  1000000.0			//let's hope this is reasonably large ;)
-
 //A basic struct for recording a ray hit result
 struct RayHitResult
 {
@@ -21,6 +20,7 @@ struct RayHitResult
 	double t;				//the parametric value of the resulting intersections
 	void* data;				//a pointer to misc. data, e.g. this could be material data for calculating lighting; or the hit object itself
 };
+
 
 class Ray
 {

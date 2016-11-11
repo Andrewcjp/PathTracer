@@ -139,6 +139,7 @@
       <PreprocessorDefinitions>NDEBUG;_WINDOWS;%(PreprocessorDefinitions);WINDOWS;WINDOWS</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
       <OpenMPSupport>true</OpenMPSupport>
+      <AdditionalIncludeDirectories>C:\Users\AANdr\Dropbox\UNI\Year2\repo\tinyray\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -153,6 +154,7 @@
     <ClCompile Include="Framebuffer.cpp" />
     <ClCompile Include="Light.cpp" />
     <ClCompile Include="Material.cpp" />
+    <ClCompile Include="matrix3x3.cpp" />
     <ClCompile Include="TestApplication.cpp" />
     <ClCompile Include="AppWindow.cpp" />
     <ClCompile Include="Plane.cpp" />
@@ -170,6 +172,7 @@
     <ClInclude Include="Framebuffer.h" />
     <ClInclude Include="Light.h" />
     <ClInclude Include="Material.h" />
+    <ClInclude Include="matrix3x3.h" />
     <ClInclude Include="TestApplication.h" />
     <ClInclude Include="AppWindow.h" />
     <ClInclude Include="Plane.h" />

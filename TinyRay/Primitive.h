@@ -19,7 +19,7 @@ class Primitive
 {
 private:
 	Material				*m_pMaterial;		//pointer to the material associated to the primitive
-
+	Colour					m_reflectioncol;	//the current relfection colour.
 public:
 	//enum for primitive types
 	enum PRIMTYPE
@@ -47,8 +47,23 @@ public:
 	{
 		return m_pMaterial;
 	}
+	virtual void SetRelfection(Colour col) {
+		m_reflectioncol = col;
+	}
 	//point for textures
-	virtual Colour GetDiffuseColour(Vector3 point) {
+	virtual Colour GetDiffuseColour(Vector3 point) {		
 		return m_pMaterial->GetDiffuseColour();
+	}
+	Colour GetRelfectionColour() {
+		return m_reflectioncol;
+	}
+	virtual Colour GetNormalColour(Vector3 point) {
+		return Colour(0, 0, 0);
+	}
+	virtual Vector3 GetUAxis() {
+		return Vector3(0,0,0);
+	}
+	virtual Vector3 GetVAxis() {
+		return Vector3(0, 0, 0);
 	}
 };

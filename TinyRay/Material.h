@@ -40,6 +40,10 @@ public:
 	{
 		mImage = NULL;
 	}
+	Texture(char* filename) {
+		mImage = NULL;
+		LoadTextureFromFile(filename);
+	}
 
 	~Texture()
 	{
@@ -70,6 +74,7 @@ public:
 
 		return colour;
 	}
+	//todo: covert to format
 	void LoadTextureFromFile(char* filename) {
 		
 		//open file
@@ -140,7 +145,13 @@ public:
 	inline void SetDiffuseTexture(Texture* tex) {
 		mDiffuse_texture = tex;
 	}
+	inline void SetNormalTexture(Texture* tex) {
+		mNormal_texture = tex;
+	}
 	inline Texture* GetDiffuseTexture() {
+		return mDiffuse_texture;
+	}
+	inline Texture* GetNormalTexture() {
 		return mDiffuse_texture;
 	}
 	inline void SetCastShadow(bool castShadow)

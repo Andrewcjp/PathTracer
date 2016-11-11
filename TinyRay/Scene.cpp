@@ -50,17 +50,22 @@ void Scene::InitDefaultScene()
 
 
 	newobj = new Plane();
-	static_cast<Plane*>(newobj)->SetPlane(Vector3(0.0, 0.0, 1.0), -30.0);
+	static_cast<Plane*>(newobj)->SetPlane(Vector3(0.0, 0.0, 1.0), -20);
 	newmat = new Material();
 	//mat for the box2
 	newmat->SetAmbientColour(0.0, 0.0, 0.0);
-	newmat->SetDiffuseColour(0.0, 0.8, 0.8);
+	newmat->SetDiffuseColour(0.0, 0.0, 0.0);
 	newmat->SetSpecularColour(0.0, 0.0, 0.0);
 
 	Texture* t = new Texture();
-	t->LoadTextureFromFile("C:\\Users\\AANdr\\Dropbox\\UNI\\Year2\\repo\\tinyray\\Test.bmp");
+	//t->LoadTextureFromFile("C:\\Users\\AANdr\\Dropbox\\UNI\\Year2\\repo\\tinyray\\Test.bmp");
+	t->LoadTextureFromFile("T:\\Documents\\1\\tinyray\\Test.bmp");//N_Brick
+	Texture* normalt = new Texture();
+	normalt->LoadTextureFromFile("T:\\Documents\\1\\tinyray\\N_Brick.bmp");
 
 	newmat->SetDiffuseTexture(t);
+	newmat->SetNormalTexture(normalt);
+
 	newmat->SetSpecPower(10);
 	newobj->SetMaterial(newmat);
 	m_sceneObjects.push_back(newobj);

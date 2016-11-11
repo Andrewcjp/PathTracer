@@ -20,7 +20,7 @@ Plane::Plane()
 	m_primtype = PRIMTYPE_Plane;
 
 }
-
+#define MeshScale 0.1
 
 Plane::~Plane()
 {
@@ -47,7 +47,6 @@ RayHitResult Plane::IntersectByRay(Ray& ray)
 	result.data = this;
 	Vector3 intersection_point = ray.GetRayStart() + r*result.t;
 	result.point = intersection_point;
-
 	return result;
 }
 
@@ -61,8 +60,8 @@ void Plane::SetPlane(const Vector3& normal, double offset,bool pattern)
 }
 Colour Plane::GetDiffuseColour(Vector3 point) {
 	if (GetMaterial()->HasDiffuseTexture()) {
-		float u = point.DotProduct(UAxis) * 0.1;
-		float v = point.DotProduct(VAxis) * 0.1;
+		float u = point.DotProduct(UAxis) * MeshScale;
+		float v = point.DotProduct(VAxis) * MeshScale;
 		return GetMaterial()->GetDiffuseTexture()->GetTexelColour(u, v);// *mat->GetDiffuseColour();
 	}
 	else
@@ -72,7 +71,7 @@ Colour Plane::GetDiffuseColour(Vector3 point) {
 			int dx = point[0] / 2.0;
 			int dy = point[1] / 2.0;
 			int dz = point[2] / 2.0;
-
+			
 			if (dx % 2 || dy % 2 || dz % 2)
 			{
 				return  Vector3(0.1, 0.1, 0.1);
@@ -83,6 +82,13 @@ Colour Plane::GetDiffuseColour(Vector3 point) {
 			}
 		}
 		return GetMaterial()->GetDiffuseColour();
+	}
+}
+Colour Plane::GetNormalColour(Vector3 point) {
+	if (GetMaterial()->HasNormalTexture()) {
+		float u = point.DotProduct(UAxis) * MeshScale;
+		float v = point.DotProduct(VAxis) * MeshScale;
+		return GetMaterial()->GetNormalTexture()->GetTexelColour(u, v);// *mat->GetDiffuseColour();
 	}
 }
 
