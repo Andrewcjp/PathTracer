@@ -58,10 +58,10 @@ void Scene::InitDefaultScene()
 	newmat->SetSpecularColour(0.0, 0.0, 0.0);
 
 	Texture* t = new Texture();
-	t->LoadTextureFromFile("C:\\Users\\AANdr\\Dropbox\\UNI\\Year2\\repo\\tinyray\\Test.bmp");
+	t->LoadTextureFromFile("C:\\Users\\AANdr\\Dropbox\\UNI\\Year2\\repo\\tinyray\\newBricks.bmp");
 //	t->LoadTextureFromFile("T:\\Documents\\1\\tinyray\\Test.bmp");//N_Brick
 	Texture* normalt = new Texture();
-	normalt->LoadTextureFromFile("C:\\Users\\AANdr\\Dropbox\\UNI\\Year2\\repo\\tinyray\\N_Brick.bmp");
+	normalt->LoadTextureFromFile("C:\\Users\\AANdr\\Dropbox\\UNI\\Year2\\repo\\tinyray\\N_newBricks.bmp");
 
 	newmat->SetDiffuseTexture(t);
 	newmat->SetNormalTexture(normalt);

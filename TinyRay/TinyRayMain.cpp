@@ -31,9 +31,12 @@ void PrintUsage()
 	printf("F1: Ambient only\n");
 	printf("F2: Full lighting no shadow, reflection and transmission\n");
 	printf("F3: Full lighting with shadow\n");
-	printf("F4: Full lighting  reflection\n");
-	printf("F5: Full lighting  refraction\n");
+	printf("F4: Full lighting reflection\n");
+	printf("F5: Full lighting refraction\n");
 	printf("F6: Ray trace everything (default)\n");
+	printf("N: Toggle Normal Mapping\n");
+	printf("M: Toggle Soft Shadows\n");
+	printf("B: Toggle Super Sampling\n");
 }
 
 void ErrorExit(LPTSTR lpszFunction)

@@ -96,10 +96,12 @@ void RayTracer::DoRayTrace(Scene* pScene)
 		glClearColor(0.0, 0.0, 0.0, 0.0);
 		glClear(GL_COLOR_BUFFER_BIT);
 		Colour colour;
+		int current = 0;
 		//TinyRay on multiprocessors using OpenMP!!!
-#pragma omp parallel for schedule (dynamic, 1) private(colour)
+#pragma omp parallel for schedule (dynamic, 1) private(colour)		
 		for (int i = 0; i < m_buffHeight; i += 1) {
 			for (int j = 0; j < m_buffWidth; j += 1) {
+				current = i + j;
 				colour = Colour(0, 0, 0);
 				Vector3 pixel;
 				//calculate the metric size of a pixel in the view plane (e.g. framebuffer)
@@ -181,8 +183,10 @@ void RayTracer::DoRayTrace(Scene* pScene)
 				* Draw the pixel as a coloured rectangle
 				*/
 				m_framebuffer->WriteRGBToFramebuffer(colour, j, i);
+				
 			}
 		}
+
 		printf("Time taken: %.00fms\n", (double)(clock() - tstart) * 1000 / CLOCKS_PER_SEC);
 		fprintf(stdout, "Done!!!\n");
 		m_renderCount++;
@@ -329,9 +333,14 @@ Vector3 TimesMat(Vector3 target, Vector3 bitangent, Vector3 tangent, Vector3 nor
 	target[2] = normal.Normalise().DotProduct(target);
 	return target;
 }
+
+//todo: sphereical Texture warpping
+//todo: box texture wrapping.
+//todo: ? handle uv mapping
+//todo: handle multiple lights
 Colour RayTracer::CalculateLighting(std::vector<Light*>* lights, Vector3* campos, RayHitResult* hitresult)
 {
-	
+
 	Colour outcolour;
 	Colour Linearcol;
 	std::vector<Light*>::iterator lit_iter = lights->begin();
@@ -360,15 +369,15 @@ Colour RayTracer::CalculateLighting(std::vector<Light*>* lights, Vector3* campos
 		float distance = sqrtf(diff.DotProduct(diff));
 		Vector3 normal;
 		if (normalmapping && (mat->HasNormalTexture() == true)) {
+			//preturb the normal to the simulted normal
 			normal = prim->GetNormalColour(hitresult->point).Normalise();
 		}
 		else
 		{
 			normal = hitresult->normal.Normalise();
 		}
-
 		Vector3 tangent = normal.CrossProduct(prim->GetUAxis().Normalise());//todo: might need to be V axis here to get the bittangent along the U axis
-		Vector3 bitangent = tangent.CrossProduct(normal);
+		Vector3 bitangent = tangent.CrossProduct(normal).Normalise();
 		Vector3 eyepos = campos->Normalise();
 		Vector3 lightpos = clight->GetLightPosition();
 		Vector3 pos = hitresult->point;

@@ -50,7 +50,7 @@ RayHitResult Plane::IntersectByRay(Ray& ray)
 	return result;
 }
 
-void Plane::SetPlane(const Vector3& normal, double offset,bool pattern)
+void Plane::SetPlane(const Vector3& normal, double offset, bool pattern)
 {
 	m_normal = normal;
 	m_offset = -offset;
@@ -71,7 +71,7 @@ Colour Plane::GetDiffuseColour(Vector3 point) {
 			int dx = point[0] / 2.0;
 			int dy = point[1] / 2.0;
 			int dz = point[2] / 2.0;
-			
+
 			if (dx % 2 || dy % 2 || dz % 2)
 			{
 				return  Vector3(0.1, 0.1, 0.1);
@@ -88,7 +88,11 @@ Colour Plane::GetNormalColour(Vector3 point) {
 	if (GetMaterial()->HasNormalTexture()) {
 		float u = point.DotProduct(UAxis) * MeshScale;
 		float v = point.DotProduct(VAxis) * MeshScale;
-		return GetMaterial()->GetNormalTexture()->GetTexelColour(u, v);// *mat->GetDiffuseColour();
+		Colour texelvector = GetMaterial()->GetNormalTexture()->GetTexelColour(u, v);
+		texelvector[0] = (2 * texelvector[0]) - 1;
+		texelvector[1] = (2 * texelvector[1]) - 1;
+		texelvector[2] = (2 * texelvector[2]) - 1;
+		return texelvector;// *mat->GetDiffuseColour();
 	}
 }
 

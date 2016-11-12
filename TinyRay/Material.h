@@ -61,9 +61,12 @@ public:
 		int texel_stride = mChannels;
 		int row_stride = mWidth;
 		int texel_loc = (dx*texel_stride) + dy*row_stride*texel_stride;
-		//todo: this might be unsafe!
+		//todo: this might be unsafe! shocker IT IS!
 		if (texel_loc > msize -1) {
 			texel_loc -= msize;//clamp
+			if (texel_loc > msize - 1) {
+				texel_loc -= msize;//clamp
+			}
 		}
 		unsigned char* comp = mImage + texel_loc;
 		//bmp not rgb
@@ -101,7 +104,7 @@ public:
 			hFile.close();
 			throw std::invalid_argument("Error: Invalid File Format. 24 or 32 bit Image Required.");
 		}
-
+		//todo: support 32 bit with alpha
 		//mChannels = FileInfo[28];
 		mChannels = 3;
 		mWidth = FileInfo[18] + (FileInfo[19] << 8);

@@ -15,7 +15,7 @@
 
 AppWindow::AppWindow()
 {
-	
+
 }
 
 AppWindow::~AppWindow()
@@ -34,7 +34,7 @@ HGLRC AppWindow::CreateOGLContext(HDC hdc)
 	unsigned int pixelformat;
 	HGLRC hglrc;
 
-	static PIXELFORMATDESCRIPTOR pfd = 
+	static PIXELFORMATDESCRIPTOR pfd =
 	{
 		sizeof(PIXELFORMATDESCRIPTOR),				// Size Of This Pixel Format Descriptor
 		1,											// Version Number
@@ -56,22 +56,22 @@ HGLRC AppWindow::CreateOGLContext(HDC hdc)
 		0, 0, 0										// Layer Masks Ignored
 	};
 
-	if (!(pixelformat=ChoosePixelFormat(hdc,&pfd)))
+	if (!(pixelformat = ChoosePixelFormat(hdc, &pfd)))
 	{
 		return 0;
 	}
 
-	if(!SetPixelFormat(hdc,pixelformat,&pfd))
+	if (!SetPixelFormat(hdc, pixelformat, &pfd))
 	{
 		return 0;
 	}
 
-	if (!(hglrc=wglCreateContext(hdc)))
+	if (!(hglrc = wglCreateContext(hdc)))
 	{
 		return 0;
 	}
 
-	if(!wglMakeCurrent(hdc,hglrc))
+	if (!wglMakeCurrent(hdc, hglrc))
 	{
 		return 0;
 	}
@@ -83,7 +83,7 @@ void AppWindow::DestroyOGLWindow()
 {
 	DestroyOGLContext();
 
-	DestroyWindow( m_hwnd );
+	DestroyWindow(m_hwnd);
 
 	m_hwnd = NULL;
 	m_hdc = NULL;
@@ -91,14 +91,14 @@ void AppWindow::DestroyOGLWindow()
 
 BOOL AppWindow::DestroyOGLContext()
 {
-	if ( m_hglrc )
+	if (m_hglrc)
 	{
-		wglMakeCurrent( NULL, NULL );
-		wglDeleteContext( m_hglrc );
+		wglMakeCurrent(NULL, NULL);
+		wglDeleteContext(m_hglrc);
 		m_hglrc = NULL;
 	}
-	
-	if ( !ReleaseDC ( m_hwnd, m_hdc ) )
+
+	if (!ReleaseDC(m_hwnd, m_hdc))
 		return FALSE;
 
 	return TRUE;
@@ -106,23 +106,23 @@ BOOL AppWindow::DestroyOGLContext()
 
 BOOL AppWindow::InitWindow(HINSTANCE hInstance, int width, int height)
 {
-	m_hwnd = CreateWindowEx( WS_EX_APPWINDOW | WS_EX_WINDOWEDGE,
-		L"AppWindow", L"TinyRay - Graphics I", WS_OVERLAPPED|WS_CLIPSIBLINGS|WS_CLIPCHILDREN|WS_SYSMENU,
+	m_hwnd = CreateWindowEx(WS_EX_APPWINDOW | WS_EX_WINDOWEDGE,
+		L"AppWindow", L"Not So TinyRay - Graphics I", WS_OVERLAPPED | WS_CLIPSIBLINGS | WS_CLIPCHILDREN | WS_SYSMENU,
 		0, 0, width, height, NULL, NULL, hInstance, NULL);
 
-	if ( ! m_hwnd )
+	if (!m_hwnd)
 		return FALSE;
 
 	RECT clientrect;
 
 	GetClientRect(m_hwnd, &clientrect);
 
-	m_hdc = GetDC( m_hwnd );
+	m_hdc = GetDC(m_hwnd);
 
-	if ( !(m_hglrc = CreateOGLContext( m_hdc )) )
+	if (!(m_hglrc = CreateOGLContext(m_hdc)))
 		return FALSE;
-	
-	SetWindowPos(m_hwnd, NULL, 10, 10, (width << 1) - clientrect.right, (height << 1) - clientrect.bottom, SWP_HIDEWINDOW|SWP_NOREDRAW);
+
+	SetWindowPos(m_hwnd, NULL, 10, 10, (width << 1) - clientrect.right, (height << 1) - clientrect.bottom, SWP_HIDEWINDOW | SWP_NOREDRAW);
 
 	m_width = width;
 	m_height = height;
@@ -135,17 +135,17 @@ BOOL AppWindow::InitWindow(HINSTANCE hInstance, int width, int height)
 	return TRUE;
 }
 
-void AppWindow::SetVisible ( BOOL visible )
+void AppWindow::SetVisible(BOOL visible)
 {
-	ShowWindow ( m_hwnd, visible? SW_SHOW : SW_HIDE );
+	ShowWindow(m_hwnd, visible ? SW_SHOW : SW_HIDE);
 }
 
 void AppWindow::Render()
 {
-	
+
 	Colour *pBuffer = m_pRayTracer->GetFramebuffer()->GetBuffer();
 	m_pRayTracer->DoRayTrace(m_pScene);
-	
+
 	glDrawPixels(m_width, m_height, GL_RGB, GL_FLOAT, pBuffer);
 
 	glFlush();
@@ -154,18 +154,18 @@ void AppWindow::Render()
 	return;
 }
 
-void AppWindow::Resize( int width, int height )
+void AppWindow::Resize(int width, int height)
 {
 	RECT clientrect;
 	GetClientRect(m_hwnd, &clientrect);
 
-	glViewport( 0, 0, width, height );
-	
-	glMatrixMode( GL_PROJECTION );
+	glViewport(0, 0, width, height);
+
+	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
-	glOrtho( 0.0, width, 0.0, height, -1.0, 1.0);
-	
-	glMatrixMode( GL_MODELVIEW );
+	glOrtho(0.0, width, 0.0, height, -1.0, 1.0);
+
+	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
 
 	return;
@@ -173,24 +173,24 @@ void AppWindow::Resize( int width, int height )
 
 void AppWindow::InitOGLState()
 {
-	glClearColor( 0.0f, 0.0f, 0.0f, 1.0f );
+	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 
 	glDisable(GL_DEPTH_TEST);
 	glDisable(GL_CULL_FACE);
 }
 
-BOOL AppWindow::MouseLBDown ( int x, int y )
+BOOL AppWindow::MouseLBDown(int x, int y)
 {
-	
+
 	return TRUE;
 }
 
-BOOL AppWindow::MouseLBUp ( int x, int y )
+BOOL AppWindow::MouseLBUp(int x, int y)
 {
 	return TRUE;
 }
 
-BOOL AppWindow::MouseMove ( int x, int y )
+BOOL AppWindow::MouseMove(int x, int y)
 {
 	return TRUE;
 }
@@ -221,6 +221,24 @@ BOOL AppWindow::KeyUp(WPARAM key)
 		m_pRayTracer->m_traceflag = (RayTracer::TraceFlags)(RayTracer::TRACE_AMBIENT | RayTracer::TRACE_DIFFUSE_AND_SPEC
 			| RayTracer::TRACE_REFRACTION | RayTracer::TRACE_REFLECTION | RayTracer::TRACE_SHADOW);
 		break;
+	default:
+		//key pressed is displayable
+		TCHAR ch = (TCHAR)key;
+		switch (key)
+		{
+		case 78://n
+			m_pRayTracer->ToggleNormalMapping();
+			break;
+		case 77://m
+			m_pRayTracer->ToggleSoftShadows();
+			break;
+		case 66://B
+			m_pRayTracer->ToggleSuperSample();
+			break;
+		}
+
+		break;
+
 	}
 
 	m_pRayTracer->ResetRenderCount();
