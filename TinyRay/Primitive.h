@@ -20,6 +20,7 @@ class Primitive
 private:
 	Material				*m_pMaterial;		//pointer to the material associated to the primitive
 	Colour					m_reflectioncol;	//the current relfection colour.
+	Colour					m_refractedcolour;	// the colour if this is refractive
 public:
 	//enum for primitive types
 	enum PRIMTYPE
@@ -50,18 +51,27 @@ public:
 	virtual void SetRelfection(Colour col) {
 		m_reflectioncol = col;
 	}
+	virtual void SetRefraction(Colour col) {
+		m_refractedcolour = col;
+	}
 	//point for textures
-	virtual Colour GetDiffuseColour(Vector3 point) {		
+	virtual Colour GetDiffuseColour(Vector3 point) {
 		return m_pMaterial->GetDiffuseColour();
 	}
 	Colour GetRelfectionColour() {
 		return m_reflectioncol;
 	}
+	Colour GetRefractedColour() {
+		if (m_refractedcolour.Norm() > 0.1) {
+			return m_refractedcolour;
+		}
+		return Colour(1, 1, 1);
+	}
 	virtual Colour GetNormalColour(Vector3 point) {
 		return Colour(0, 0, 0);
 	}
 	virtual Vector3 GetUAxis() {
-		return Vector3(0,0,0);
+		return Vector3(0, 0, 0);
 	}
 	virtual Vector3 GetVAxis() {
 		return Vector3(0, 0, 0);

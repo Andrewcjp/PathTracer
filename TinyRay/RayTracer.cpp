@@ -101,56 +101,82 @@ void RayTracer::DoRayTrace(Scene* pScene)
 		for (int i = 0; i < m_buffHeight; i += 1) {
 			for (int j = 0; j < m_buffWidth; j += 1) {
 				colour = Colour(0, 0, 0);
-				float SSAAF = 2;
-
+				Vector3 pixel;
 				//calculate the metric size of a pixel in the view plane (e.g. framebuffer)
-				float amt = 4;
-				float diffrenceamt = 0.3;
-				for (int x = 0; x < 2; x++) {
-					for (int y = 0; y < 2; y++) {
-						Vector3 pixel;
-						float Xadd = -diffrenceamt;
-						float Yadd = -diffrenceamt;
-						if (x > 0) {
-							//second pass move over 1
-							Xadd = diffrenceamt;
+				if (SuperSample == true) {
+					float amt = 4;
+					float diffrenceamt = 0.3;
+
+					for (int x = 0; x < amt / 2; x++) {
+						for (int y = 0; y < amt / 2; y++) {
+							float Xadd = -diffrenceamt*x;
+							float Yadd = -diffrenceamt*y;
+							if (x > (amt / 2 / 2) - 1) {
+								//second pass move over 1
+								Xadd = diffrenceamt*(x - (amt / 2 / 2) - 1);
+							}
+							if (y > (amt / 2 / 2) - 1) {
+								//second pass move over 1
+								Yadd = diffrenceamt*(y - (amt / 2 / 2) - 1);
+							}
+							pixel[0] = start[0] + (i + Xadd + 0.5) * camUpVector[0] * pixelDY
+								+ (j + Yadd + 0.5) * camRightVector[0] * pixelDX;
+							pixel[1] = start[1] + (i + Xadd + 0.5) * camUpVector[1] * pixelDY
+								+ (j + Yadd + 0.5) * camRightVector[1] * pixelDX;
+							pixel[2] = start[2] + (i + Xadd + 0.5) * camUpVector[2] * pixelDY
+								+ (j + Yadd + 0.5) * camRightVector[2] * pixelDX;
+							/*
+							* setup first generation view ray
+							* In perspective projection, each view ray originates from the eye (camera) position
+							* and pierces through a pixel in the view plane
+							*/
+							Ray viewray;
+							viewray.SetRay(camPosition, (pixel - camPosition).Normalise());
+
+							double u = (double)j / (double)m_buffWidth;
+							double v = (double)i / (double)m_buffHeight;
+
+							scenebg = pScene->GetBackgroundColour();
+							//TODO:supersampling!
+							//trace the scene using the view ray
+							//default colour is the background colour, unless something is hit along the way
+							colour = colour + this->TraceScene(pScene, viewray, scenebg, m_traceLevel);
 						}
-						if (y > 0) {
-							//second pass move over 1
-							Yadd = diffrenceamt;
-						}
-						pixel[0] = start[0] + (i + Xadd + 0.5) * camUpVector[0] * pixelDY
-							+ (j + Yadd + 0.5) * camRightVector[0] * pixelDX;
-						pixel[1] = start[1] + (i + Xadd + 0.5) * camUpVector[1] * pixelDY
-							+ (j + Yadd + 0.5) * camRightVector[1] * pixelDX;
-						pixel[2] = start[2] + (i + Xadd + 0.5) * camUpVector[2] * pixelDY
-							+ (j + Yadd + 0.5) * camRightVector[2] * pixelDX;
-
-						/*
-						* setup first generation view ray
-						* In perspective projection, each view ray originates from the eye (camera) position
-						* and pierces through a pixel in the view plane
-						*/
-						Ray viewray;
-						viewray.SetRay(camPosition, (pixel - camPosition).Normalise());
-
-						double u = (double)j / (double)m_buffWidth;
-						double v = (double)i / (double)m_buffHeight;
-
-						scenebg = pScene->GetBackgroundColour();
-						//TODO:supersampling!
-						//trace the scene using the view ray
-						//default colour is the background colour, unless something is hit along the way
-						colour = colour + this->TraceScene(pScene, viewray, scenebg, m_traceLevel);
 					}
+					currentdepth = 0;
+					//	}
+					//	colour = 4.0 /colour / ;
+					float dvisor = amt;
+					colour[0] = colour[0] / dvisor;
+					colour[1] = colour[1] / dvisor;
+					colour[2] = colour[2] / dvisor;
 				}
-				currentdepth = 0;
-				//	}
-				//	colour = 4.0 /colour / ;
+				else
+				{
+					pixel[0] = start[0] + (i + 0.5) * camUpVector[0] * pixelDY
+						+ (j + 0.5) * camRightVector[0] * pixelDX;
+					pixel[1] = start[1] + (i + 0.5) * camUpVector[1] * pixelDY
+						+ (j + 0.5) * camRightVector[1] * pixelDX;
+					pixel[2] = start[2] + (i + 0.5) * camUpVector[2] * pixelDY
+						+ (j + 0.5) * camRightVector[2] * pixelDX;
 
-				colour[0] = colour[0] / amt;
-				colour[1] = colour[1] / amt;
-				colour[2] = colour[2] / amt;
+					/*
+					* setup first generation view ray
+					* In perspective projection, each view ray originates from the eye (camera) position
+					* and pierces through a pixel in the view plane
+					*/
+					Ray viewray;
+					viewray.SetRay(camPosition, (pixel - camPosition).Normalise());
+
+					double u = (double)j / (double)m_buffWidth;
+					double v = (double)i / (double)m_buffHeight;
+
+					scenebg = pScene->GetBackgroundColour();
+					//TODO:supersampling!
+					//trace the scene using the view ray
+					//default colour is the background colour, unless something is hit along the way
+					colour = this->TraceScene(pScene, viewray, scenebg, m_traceLevel);
+				}
 				/*
 				* Draw the pixel as a coloured rectangle
 				*/
@@ -206,7 +232,7 @@ Colour RayTracer::TraceScene(Scene* pScene, Ray& ray, Colour incolour, int trace
 				}
 			}
 		}
-
+		//todo: refacted light colours our bound light
 		if (m_traceflag & TRACE_REFRACTION)
 		{
 			//TODO: trace the refraction ray from the intersection point
@@ -229,12 +255,15 @@ Colour RayTracer::TraceScene(Scene* pScene, Ray& ray, Colour incolour, int trace
 
 					Refraction = (reft)*prim->GetMaterial()->GetSpecularColour() + (prim->GetMaterial()->GetDiffuseColour() *0.1f);// *0.8f;
 					outcolour = (reft)*prim->GetMaterial()->GetSpecularColour() + (prim->GetMaterial()->GetDiffuseColour() *0.1f);// *0.8f;
+					//prim->SetRefraction(Refraction);
+					//outcolour = CalculateLighting(light_list, &cameraPosition, &result);
 					if (m_traceflag & TRACE_REFLECTION) {
 						outcolour = outcolour + (Reflection *0.5f);
 					}
 				}
 			}
 		}
+
 		if (m_traceflag & TRACE_SHADOW)
 		{
 			//TODO: trace the shadow ray from the intersection point	
@@ -243,13 +272,50 @@ Colour RayTracer::TraceScene(Scene* pScene, Ray& ray, Colour incolour, int trace
 			Ray shadowray = Ray();
 			Vector3 dir = (clight->GetLightPosition() - result.point).Normalise();
 			Vector3 bias = dir * 0.0001;
-			shadowray.SetRay(result.point + bias, dir);
-			result = pScene->IntersectByRay(shadowray);
-			//pcf?
-			if (result.data) {
-				//we hit something
-				if (((Primitive*)result.data)->GetMaterial()->CastShadow() == true) {
-					outcolour = outcolour * 0.25;
+			// get the Tangent and the bit tangentin the u and ?V? axis;
+			Vector3 tangent = result.normal.CrossProduct(prim->GetUAxis().Normalise());
+			Vector3 bitangent = tangent.CrossProduct(result.normal);
+			//we will check the pixels around our centre line
+			//then avgere the result
+			//x need to bit tangent and y is tangent
+			if (Softshadows == true) {
+				int samplecount = 6;
+				float shadowAccum = 0;
+				float samplemove = 0.1;
+				for (int x = -1; x <= 1; x++) {
+					for (int y = -1; y <= 1; y++) {
+						//get the offset in the T axis
+						Vector3 offsetxdir = (tangent*(samplemove*x));
+						Vector3 offsetydir = (bitangent*(samplemove*y));
+						/*	if (x > 1) {
+								offsetxdir = bitangent*samplemove;
+
+							}
+							if (y > 1) {
+								offsetydir = tangent*samplemove;
+							}*/
+						shadowray.SetRay(result.point + offsetxdir + offsetydir + bias, dir);
+						result = pScene->IntersectByRay(shadowray);
+						//pcf?
+						if (result.data) {
+							//we hit something
+							if (((Primitive*)result.data)->GetMaterial()->CastShadow() == true) {
+								shadowAccum += 1;
+							}
+						}
+					}
+				}
+				outcolour = outcolour * (1.0 - (shadowAccum / samplecount));
+			}
+			else
+			{
+				shadowray.SetRay(result.point + bias, dir);
+				result = pScene->IntersectByRay(shadowray);
+				if (result.data) {
+					//we hit something
+					if (((Primitive*)result.data)->GetMaterial()->CastShadow() == true) {
+						outcolour = outcolour *0.25f;
+					}
 				}
 			}
 		}
@@ -265,7 +331,7 @@ Vector3 TimesMat(Vector3 target, Vector3 bitangent, Vector3 tangent, Vector3 nor
 }
 Colour RayTracer::CalculateLighting(std::vector<Light*>* lights, Vector3* campos, RayHitResult* hitresult)
 {
-	bool normalmapping = false;
+	
 	Colour outcolour;
 	Colour Linearcol;
 	std::vector<Light*>::iterator lit_iter = lights->begin();
@@ -333,8 +399,8 @@ Colour RayTracer::CalculateLighting(std::vector<Light*>* lights, Vector3* campos
 		//specular = min(max(specular, 0), 1);
 
 		Linearcol = mat->GetAmbientColour()
-			+ (CurrentDiffuse * clight->GetLightColour()  * diffuseamt)
-			+ (mat->GetSpecularColour() * clight->GetLightColour()  *  specular);
+			+ (CurrentDiffuse * clight->GetLightColour()*prim->GetRefractedColour()  * diffuseamt)
+			+ (mat->GetSpecularColour() * clight->GetLightColour()*prim->GetRefractedColour()   *  specular);
 
 		outcolour = Linearcol;
 		//apply gamma correction

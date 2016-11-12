@@ -40,6 +40,10 @@ class RayTracer
 		//			RayHitResult* hitresult		Hit result from ray-primitive intersection
 		Colour CalculateLighting(std::vector<Light*>* lights, Vector3* campos, RayHitResult* hitresult);
 
+		//extra options 
+		bool SuperSample = false;
+		bool Softshadows = false;
+		bool normalmapping = false;
 	public:
 		
 		enum TraceFlags
