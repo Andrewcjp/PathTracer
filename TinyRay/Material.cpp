@@ -36,6 +36,8 @@ void Material::SetDefaultMaterial()
 	mDiffuse_texture = NULL;
 	mNormal_texture = NULL;
 	mCastShadow = true;
+	mReflectivity = 0;
+	mRefractiveIndex = 0;
 }
 
 void Material::SetAmbientColour(float r, float g, float b)

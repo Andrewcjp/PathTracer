@@ -32,6 +32,8 @@ void Scene::InitDefaultScene()
 	newmat->SetAmbientColour(0.0, 0.0, 0.0);
 	newmat->SetDiffuseColour(1.0, 0.0, 0.0);
 	newmat->SetSpecularColour(1.0, 1.0, 1.0);
+	newmat->SetReflectivity(1);
+	newmat->SetRefractivity(1);
 	newmat->SetSpecPower(20);
 	newobj->SetMaterial(newmat);
 	m_sceneObjects.push_back(newobj);
@@ -43,6 +45,8 @@ void Scene::InitDefaultScene()
 	newmat->SetAmbientColour(0.0, 0.0, 0.0);
 	newmat->SetDiffuseColour(0.8, 0.8, 0.8);
 	newmat->SetSpecularColour(1.0, 1.0, 1.0);
+	newmat->SetReflectivity(1);
+	newmat->SetRefractivity(1);
 	newmat->SetSpecPower(20);
 	newobj->SetMaterial(newmat);
 	m_sceneObjects.push_back(newobj);
@@ -57,20 +61,19 @@ void Scene::InitDefaultScene()
 	newmat->SetDiffuseColour(0.0, 0.0, 0.0);
 	newmat->SetSpecularColour(0.0, 0.0, 0.0);
 
-	Texture* t = new Texture();
-	t->LoadTextureFromFile("C:\\Users\\AANdr\\Dropbox\\UNI\\Year2\\repo\\tinyray\\newBricks.bmp");
-//	t->LoadTextureFromFile("T:\\Documents\\1\\tinyray\\Test.bmp");//N_Brick
-	Texture* normalt = new Texture();
-	normalt->LoadTextureFromFile("C:\\Users\\AANdr\\Dropbox\\UNI\\Year2\\repo\\tinyray\\N_newBricks.bmp");
+	Texture* Diffuse = new Texture();
+	Diffuse->LoadTextureFromFile("../newBricks.bmp");
+	Texture* normal = new Texture();
+	normal->LoadTextureFromFile("../N_newBricks.bmp");
 
-	newmat->SetDiffuseTexture(t);
-	newmat->SetNormalTexture(normalt);
+	newmat->SetDiffuseTexture(Diffuse);
+	newmat->SetNormalTexture(normal);
 
 	newmat->SetSpecPower(10);
 	newobj->SetMaterial(newmat);
 	m_sceneObjects.push_back(newobj);
 	m_objectMaterials.push_back(newmat);
-	m_Textures.push_back(t);
+	m_Textures.push_back(Diffuse);
 
 
 
@@ -80,6 +83,8 @@ void Scene::InitDefaultScene()
 	newmat->SetAmbientColour(0.0, 0.0, 0.0);
 	newmat->SetDiffuseColour(0.0, 0.8, 0.0);
 	newmat->SetSpecularColour(1.0, 1.0, 1.0);
+	newmat->SetReflectivity(1);
+	newmat->SetRefractivity(1);
 	newmat->SetSpecPower(2);
 	newobj->SetMaterial(newmat);
 	m_sceneObjects.push_back(newobj);
@@ -91,6 +96,8 @@ void Scene::InitDefaultScene()
 	newmat->SetAmbientColour(0.0, 0.0, 0.0);
 	newmat->SetDiffuseColour(1.0, 1.0, 1.0);
 	newmat->SetSpecularColour(1.0, 1.0, 1.0);
+	newmat->SetReflectivity(1);
+	newmat->SetRefractivity(1);
 	newmat->SetSpecPower(2);
 	newobj->SetMaterial(newmat);
 	m_sceneObjects.push_back(newobj);
@@ -102,6 +109,8 @@ void Scene::InitDefaultScene()
 	newmat->SetAmbientColour(0.0, 0.0, 0.0);
 	newmat->SetDiffuseColour(0.0, 0.0, 0.9);
 	newmat->SetSpecularColour(1.0, 1.0, 1.0);
+	newmat->SetReflectivity(1);
+	newmat->SetRefractivity(1);
 	newmat->SetSpecPower(20);
 	newobj->SetMaterial(newmat);
 	m_sceneObjects.push_back(newobj);
@@ -109,7 +118,7 @@ void Scene::InitDefaultScene()
 
 
 	newobj = new Plane(); //an xz plane at the origin, floor
-	static_cast<Plane*>(newobj)->SetPlane(Vector3(0.0, 1.0, 0.0), 0.0,true);
+	static_cast<Plane*>(newobj)->SetPlane(Vector3(0.0, 1.0, 0.0), 0.0, true);
 	newmat = new Material();
 	newmat->SetAmbientColour(0.0, 0.0, 0.0);
 	newmat->SetDiffuseColour(1.0, 0.0, 0.0);
@@ -127,7 +136,7 @@ void Scene::InitDefaultScene()
 
 
 	newmat = new Material();
-	newmat->SetAmbientColour(0.0,0.0, 0.0);
+	newmat->SetAmbientColour(0.0, 0.0, 0.0);
 	newmat->SetDiffuseColour(0.0, 1.0, 0.0);
 	newmat->SetSpecularColour(0.0, 0.0, 0.0);
 	newmat->SetSpecPower(10);
@@ -238,11 +247,11 @@ RayHitResult Scene::IntersectByRay(Ray& ray)
 			/*if ((hits[j].point - ray.GetRayStart()).Norm() > (hits[j + 1].point - ray.GetRayStart()).Norm()) {
 				std::swap(hits[j + 1], hits[j]);
 			}*/
-			
-				if ( (hits[j].t) > (hits[j + 1].t)) {
-					std::swap(hits[j + 1], hits[j]);
-				}
-			
+
+			if ((hits[j].t) > (hits[j + 1].t)) {
+				std::swap(hits[j + 1], hits[j]);
+			}
+
 		}
 	}
 	if (hits.size() >= 1) {

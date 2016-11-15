@@ -50,3 +50,4 @@ protected:
 		BOOL		MouseMove ( int x, int y );
 		BOOL		KeyUp(WPARAM key);
 };
+ 

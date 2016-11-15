@@ -181,7 +181,6 @@ void AppWindow::InitOGLState()
 
 BOOL AppWindow::MouseLBDown(int x, int y)
 {
-
 	return TRUE;
 }
 

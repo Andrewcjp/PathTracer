@@ -183,7 +183,7 @@ void RayTracer::DoRayTrace(Scene* pScene)
 				* Draw the pixel as a coloured rectangle
 				*/
 				m_framebuffer->WriteRGBToFramebuffer(colour, j, i);
-				
+
 			}
 		}
 
@@ -208,9 +208,10 @@ Colour RayTracer::TraceScene(Scene* pScene, Ray& ray, Colour incolour, int trace
 	//TODO: Scene::IntersectByRay needs to be implemented first
 	result = pScene->IntersectByRay(ray);
 	Primitive* prim = (Primitive*)result.data;
+	Material* mat = prim->GetMaterial();
 	if (result.data) //the ray has hit something
 	{
-		Primitive* t = (Primitive*)result.data;
+
 
 		//TODO:1. Non-recursive ray tracing:
 		//	 When a ray intersect with an objects, determine the colour at the intersection point
@@ -220,7 +221,7 @@ Colour RayTracer::TraceScene(Scene* pScene, Ray& ray, Colour incolour, int trace
 		if (m_traceflag & TRACE_REFLECTION)
 		{
 			//TODO: trace the reflection ray from the intersection point
-			if (prim->GetMaterial()->GetSpecularColour().Norm() > 0.0f) {
+			if (mat->GetReflectivity() > 0.0f) {
 				if (tracelevel > 1) {
 					Ray reflectRay = Ray();
 					//Vector3 rray = ray.GetRay() - result.normal* (2.0 * (ray.GetRay().DotProduct(result.normal)));
@@ -240,7 +241,7 @@ Colour RayTracer::TraceScene(Scene* pScene, Ray& ray, Colour incolour, int trace
 		if (m_traceflag & TRACE_REFRACTION)
 		{
 			//TODO: trace the refraction ray from the intersection point
-			if (prim->GetMaterial()->GetSpecularColour().Norm() > 0.0f) {
+			if (mat->GetRefractivity() > 0.0f) {
 				if (tracelevel > 1) {
 					Ray refractRay = Ray();
 					Vector3 raray = ray.GetRay().Normalise().Refract(result.normal.Normalise(), (1.0 / 1.1));

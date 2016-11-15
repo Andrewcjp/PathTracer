@@ -52,39 +52,47 @@ public:
 
 	Colour GetTexelColour(double u, double v)
 	{
+		if (mImage == NULL) {
+			//ether the image failed to load or the image was never set 
+			//so we return black
+			return Colour(0, 0, 0);
+		}
 		Colour colour;
 		u = abs(u);
 		v = abs(v);
-		
+
 		int dx = u*mWidth;
 		int dy = v*mHeight;
 		int texel_stride = mChannels;
 		int row_stride = mWidth;
 		int texel_loc = (dx*texel_stride) + dy*row_stride*texel_stride;
 		//todo: this might be unsafe! shocker IT IS!
-		if (texel_loc > msize -1) {
+		if (texel_loc > msize - 1) {
 			texel_loc -= msize;//clamp
 			if (texel_loc > msize - 1) {
 				texel_loc -= msize;//clamp
 			}
 		}
+
 		unsigned char* comp = mImage + texel_loc;
 		//bmp not rgb
 		//todo remove this
 		//bgr
-		colour[0] = *(comp+2) / 255.0f;
-		colour[1] = *(comp +1) / 255.0f;
-		colour[2] = *(comp ) / 255.0f;
+		colour[0] = *(comp + 2) / 255.0f;
+		colour[1] = *(comp + 1) / 255.0f;
+		colour[2] = *(comp) / 255.0f;
 
 		return colour;
 	}
 	//todo: covert to format
 	void LoadTextureFromFile(char* filename) {
-		
+
 		//open file
 		std::fstream hFile(filename, std::ios::in | std::ios::binary);
 		if (!hFile.is_open()) {
-			throw std::invalid_argument("Error: File Not Found.");
+			std::cout << "Error: File " << filename << " Not Found." << std::endl;
+			mImage = NULL;
+			return;
 		}
 
 		hFile.seekg(0, std::ios::end);
@@ -96,13 +104,17 @@ public:
 		if (FileInfo[0] != 'B' && FileInfo[1] != 'M')
 		{
 			hFile.close();
-			throw std::invalid_argument("Error: Invalid File Format. Bitmap Required.");
+			std::cout << "Error: Invalid File Format. Bitmap Required." << std::endl;
+			mImage = NULL;
+			return;
 		}
 
 		if (FileInfo[28] != 24 && FileInfo[28] != 32)
 		{
 			hFile.close();
-			throw std::invalid_argument("Error: Invalid File Format. 24 or 32 bit Image Required.");
+			std::cout << "Error: Invalid File Format. 24 or 32 bit Image Required." << std::endl;
+			mImage = NULL;
+			return;
 		}
 		//todo: support 32 bit with alpha
 		//mChannels = FileInfo[28];
@@ -135,6 +147,8 @@ private:
 	Texture* mDiffuse_texture;			//Colour (diffuse) texture of the material for texture mapped primitives
 	Texture* mNormal_texture;			//Normal texture of the material for textured mapped privmites with a normal map
 	bool mCastShadow;					//boolean indicating if a material can cast shadow
+	double mReflectivity;
+	double mRefractiveIndex;
 
 public:
 
@@ -162,7 +176,18 @@ public:
 	{
 		mCastShadow = castShadow;
 	}
-
+	inline void SetReflectivity(double amt) {
+		mReflectivity = amt;
+	}
+	inline void SetRefractivity(double amt) {
+		mRefractiveIndex = amt;
+	}
+	inline double GetReflectivity() {
+		return	mReflectivity;
+	}
+	inline double GetRefractivity() {
+		return mRefractiveIndex;
+	}
 	inline Colour& GetAmbientColour()
 	{
 		return mAmbient;
@@ -170,7 +195,7 @@ public:
 
 	inline Colour& GetDiffuseColour()
 	{
-		
+
 		return mDiffuse;
 	}
 
