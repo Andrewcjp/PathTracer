@@ -193,7 +193,13 @@ void RayTracer::DoRayTrace(Scene* pScene)
 	}
 }
 const double ERR = 1e-12;
-
+float Distance(const Vector3& point1, const Vector3& point2)
+{
+	float distance = sqrt((point1[0] - point2[0]) * (point1[0] - point2[0]) +
+		(point1[1] - point2[1]) * (point1[1] - point2[1]) +
+		(point1[2] - point2[2]) * (point1[2] - point2[2]));
+	return distance;
+}
 Colour RayTracer::TraceScene(Scene* pScene, Ray& ray, Colour incolour, int tracelevel, bool shadowray)
 {
 	RayHitResult result;
@@ -268,66 +274,75 @@ Colour RayTracer::TraceScene(Scene* pScene, Ray& ray, Colour incolour, int trace
 				}
 			}
 		}
-
+		//todo: clour bleed?
 		if (m_traceflag & TRACE_SHADOW)
 		{
 			//TODO: trace the shadow ray from the intersection point	
 			std::vector<Light*>::iterator lit_iter = light_list->begin();
-			Light* clight = *lit_iter;
-			Ray shadowray = Ray();
-			Vector3 dir = (clight->GetLightPosition() - result.point).Normalise();
-			Vector3 bias = dir * 0.0001;
-			// get the Tangent and the bit tangentin the u and ?V? axis;
-			Vector3 tangent = result.normal.CrossProduct(prim->GetUAxis().Normalise());
-			Vector3 bitangent = tangent.CrossProduct(result.normal);
-			//we will check the pixels around our centre line
-			//then avgere the result
-			//x need to bit tangent and y is tangent
-			if (Softshadows == true) {
-				int samplecount = 6;
-				float shadowAccum = 0;
-				float samplemove = 0.1;
-				for (int x = -1; x <= 1; x++) {
-					for (int y = -1; y <= 1; y++) {
-						//get the offset in the T axis
-						Vector3 offsetxdir = (tangent*(samplemove*x));
-						Vector3 offsetydir = (bitangent*(samplemove*y));
-						/*	if (x > 1) {
-								offsetxdir = bitangent*samplemove;
+			float shadowsum = 1;
+			for (int i = 0; i < light_list->size(); i++) {
+				shadowsum = 1;
+				Ray shadowray = Ray();
+				RayHitResult shadowresult;
+				Light* clight = *(lit_iter + i);
+				Vector3 dir = (clight->GetLightPosition() - result.point).Normalise();
+				Vector3 bias = dir * 0.0001;
+				// get the Tangent and the bit tangentin the u and ?V? axis;
+				Vector3 tangent = result.normal.CrossProduct(prim->GetUAxis().Normalise());
+				Vector3 bitangent = tangent.CrossProduct(result.normal);
+				//we will check the pixels around our centre line
+				//then avgere the result
+				//x need to bit tangent and y is tangent
+				if (Softshadows == true) {
 
-							}
-							if (y > 1) {
-								offsetydir = tangent*samplemove;
-							}*/
-						shadowray.SetRay(result.point + offsetxdir + offsetydir + bias, dir);
-						result = pScene->IntersectByRay(shadowray);
-						//pcf?
-						if (result.data) {
-							//we hit something
-							if (((Primitive*)result.data)->GetMaterial()->CastShadow() == true) {
-								shadowAccum += 1;
+					int samplecount = 6;
+					float shadowAccum = 0;
+					float samplemove = 0.1;
+					for (int x = -1; x <= 1; x++) {
+						for (int y = -1; y <= 1; y++) {
+							//get the offset in the T axis
+							Vector3 offsetxdir = (tangent*(samplemove*x));
+							Vector3 offsetydir = (bitangent*(samplemove*y));
+							shadowray.SetRay(result.point + offsetxdir + offsetydir + bias, dir);
+							shadowresult = pScene->IntersectByRay(shadowray);
+							if (shadowresult.data) {
+								//we hit something
+								if (((Primitive*)shadowresult.data)->GetMaterial()->CastShadow() == true) {
+									shadowAccum += 1;
+								}
 							}
 						}
 					}
+					//outcolour = outcolour * (1.0 - (shadowAccum / samplecount));
 				}
-				outcolour = outcolour * (1.0 - (shadowAccum / samplecount));
-			}
-			else
-			{
-				shadowray.SetRay(result.point + bias, dir);
-				result = pScene->IntersectByRay(shadowray);
-				if (result.data) {
-					//we hit something
-					if (((Primitive*)result.data)->GetMaterial()->CastShadow() == true) {
-						outcolour = outcolour *0.25f;
+				else
+				{
+					shadowray.SetRay(result.point + bias, dir);
+					shadowresult = pScene->IntersectByRay(shadowray);
+					float tlight = 0;//calculate where our light is along our ray.
+					//t is intersection distance along ray
+					//so:
+					tlight = Distance(result.point, clight->GetLightPosition());
+					if (shadowresult.data) {
+						//we hit something
+						if (shadowresult.t < tlight) {
+							//check that the object we hit is not past our light
+							if (((Primitive*)shadowresult.data)->GetMaterial()->CastShadow() == true) {
+								shadowsum = 0.25f;
+								outcolour = outcolour * shadowsum;
+							}
+						}
 					}
+
 				}
 			}
+
 		}
 	}
 
 	return outcolour;
 }
+
 Vector3 TimesMat(Vector3 target, Vector3 bitangent, Vector3 tangent, Vector3 normal) {
 	target[0] = tangent.Normalise().DotProduct(target);
 	target[1] = bitangent.Normalise().DotProduct(target);
@@ -343,7 +358,7 @@ Colour RayTracer::CalculateLighting(std::vector<Light*>* lights, Vector3* campos
 {
 
 	Colour outcolour;
-	Colour Linearcol;
+	Colour Linearcolsum;
 	std::vector<Light*>::iterator lit_iter = lights->begin();
 
 	Primitive* prim = (Primitive*)hitresult->data;
@@ -362,61 +377,63 @@ Colour RayTracer::CalculateLighting(std::vector<Light*>* lights, Vector3* campos
 	////Note the default scene only has one light source
 	if (m_traceflag & TRACE_DIFFUSE_AND_SPEC)
 	{
-		//ip = l dot n *c *il
-		//TODO: Calculate and apply the lighting of the intersected object using the illumination model covered in the lecture
-		//i.e. diffuse using Lambertian model, for specular, you can use either Phong or Blinn-Phong model
-		Light* clight = *lit_iter;
-		Vector3 diff = (clight->GetLightPosition() - hitresult->point);
-		float distance = sqrtf(diff.DotProduct(diff));
-		Vector3 normal;
-		if (normalmapping && (mat->HasNormalTexture() == true)) {
-			//preturb the normal to the simulted normal
-			normal = prim->GetNormalColour(hitresult->point).Normalise();
-		}
-		else
-		{
-			normal = hitresult->normal.Normalise();
-		}
-		Vector3 tangent = normal.CrossProduct(prim->GetUAxis().Normalise());//todo: might need to be V axis here to get the bittangent along the U axis
-		Vector3 bitangent = tangent.CrossProduct(normal).Normalise();
-		Vector3 eyepos = campos->Normalise();
-		Vector3 lightpos = clight->GetLightPosition();
-		Vector3 pos = hitresult->point;
-		//convert opsitions to TBN
-		if (normalmapping && (mat->HasNormalTexture() == true)) {
-			lightpos = TimesMat(lightpos, bitangent, tangent, normal);
-			eyepos = TimesMat(eyepos, bitangent, tangent, normal);
-			pos = TimesMat(pos, bitangent, tangent, normal);
-			CurrentDiffuse = prim->GetDiffuseColour(pos);
-		}
-		Vector3 lightdir = (lightpos - pos).Normalise();
-		float diffuseamt = max(lightdir.DotProduct(normal), 0.0);
-		float specular = 0;
+		for (int i = 0; i < lights->size(); i++) {
+			//ip = l dot n *c *il
+			//TODO: Calculate and apply the lighting of the intersected object using the illumination model covered in the lecture
+			//i.e. diffuse using Lambertian model, for specular, you can use either Phong or Blinn-Phong model
+			Light* clight = *(lit_iter + i);
+			Vector3 diff = (clight->GetLightPosition() - hitresult->point);
+			float distance = sqrtf(diff.DotProduct(diff));
+			Vector3 normal;
+			if (normalmapping && (mat->HasNormalTexture() == true)) {
+				//preturb the normal to the simulted normal
+				normal = prim->GetNormalColour(hitresult->point).Normalise();
+			}
+			else
+			{
+				normal = hitresult->normal.Normalise();
+			}
+			Vector3 tangent = normal.CrossProduct(prim->GetUAxis().Normalise());//todo: might need to be V axis here to get the bittangent along the U axis
+			Vector3 bitangent = tangent.CrossProduct(normal).Normalise();
+			Vector3 eyepos = campos->Normalise();
+			Vector3 lightpos = clight->GetLightPosition();
+			Vector3 pos = hitresult->point;
+			//convert opsitions to TBN
+			if (normalmapping && (mat->HasNormalTexture() == true)) {
+				lightpos = TimesMat(lightpos, bitangent, tangent, normal);
+				eyepos = TimesMat(eyepos, bitangent, tangent, normal);
+				pos = TimesMat(pos, bitangent, tangent, normal);
+				CurrentDiffuse = prim->GetDiffuseColour(pos);
+			}
+			Vector3 lightdir = (lightpos - pos).Normalise();
+			float diffuseamt = max(lightdir.DotProduct(normal), 0.0);
+			float specular = 0;
 
-		//diffuseamt = (max(diffuseamt, 0), 1);
-		//bhlim-phong
-		if (blinn) {
-			Vector3 H = (lightdir + eyepos).Normalise();//half vector
-			float ndotH = max(normal.DotProduct(H), 0.0);
-			specular = pow(ndotH, mat->GetSpecPower());
-		}
-		else {
-			Vector3 invlightdir = lightdir*-1.0;
-			Vector3 R = invlightdir.Reflect(normal).Normalise();
-			//R = R * -1;
-			specular = pow(max(eyepos.DotProduct(R), 0.0), mat->GetSpecPower());
-		}
-		//specular = min(max(specular, 0), 1);
+			//diffuseamt = (max(diffuseamt, 0), 1);
+			//bhlim-phong
+			if (blinn) {
+				Vector3 H = (lightdir + eyepos).Normalise();//half vector
+				float ndotH = max(normal.DotProduct(H), 0.0);
+				specular = pow(ndotH, mat->GetSpecPower());
+			}
+			else {
+				Vector3 invlightdir = lightdir*-1.0;
+				Vector3 R = invlightdir.Reflect(normal).Normalise();
+				//R = R * -1;
+				specular = pow(max(eyepos.DotProduct(R), 0.0), mat->GetSpecPower());
+			}
+			//specular = min(max(specular, 0), 1);
 
-		Linearcol = mat->GetAmbientColour()
-			+ (CurrentDiffuse * clight->GetLightColour()*prim->GetRefractedColour()  * diffuseamt)
-			+ (mat->GetSpecularColour() * clight->GetLightColour()*prim->GetRefractedColour()   *  specular);
-
-		outcolour = Linearcol;
+			Colour out = mat->GetAmbientColour()
+				+ (CurrentDiffuse * clight->GetLightColour()*prim->GetRefractedColour()  * diffuseamt)
+				+ (mat->GetSpecularColour() * clight->GetLightColour()*prim->GetRefractedColour()   *  specular);
+			Linearcolsum = Linearcolsum + out;
+		}
+		//sum all the colours from lights then gamma correct
 		//apply gamma correction
-		outcolour[0] = pow(Linearcol[0], 1.0 / Gamma);
-		outcolour[1] = pow(Linearcol[1], 1.0 / Gamma);
-		outcolour[2] = pow(Linearcol[2], 1.0 / Gamma);
+		outcolour[0] = pow(Linearcolsum[0], 1.0 / Gamma);
+		outcolour[1] = pow(Linearcolsum[1], 1.0 / Gamma);
+		outcolour[2] = pow(Linearcolsum[2], 1.0 / Gamma);
 	}
 	else
 	{

@@ -171,10 +171,15 @@ void Scene::InitDefaultScene()
 	newobj->SetMaterial(newmat);
 	m_sceneObjects.push_back(newobj);
 
-	//Create one light source for the scene
 	Light *newlight = new Light();
+	newlight->SetLightPosition(0, 5, 10.0);
+	newlight->SetLightColour(0.5, 0.5, 0.5);
+	m_lights.push_back(newlight);
+	//Create one light source for the scene
+	newlight = new Light();
 	newlight->SetLightPosition(0.0, 15.0, 10.0);
 	m_lights.push_back(newlight);
+
 
 	//A blue background
 	m_background.SetVector(0.25, 0.6, 1.0);
@@ -244,14 +249,9 @@ RayHitResult Scene::IntersectByRay(Ray& ray)
 	}
 	for (int i = 0; i < hits.size() - 1; i++) {
 		for (int j = 0; j < hits.size() - 1; j++) {
-			/*if ((hits[j].point - ray.GetRayStart()).Norm() > (hits[j + 1].point - ray.GetRayStart()).Norm()) {
-				std::swap(hits[j + 1], hits[j]);
-			}*/
-
 			if ((hits[j].t) > (hits[j + 1].t)) {
 				std::swap(hits[j + 1], hits[j]);
 			}
-
 		}
 	}
 	if (hits.size() >= 1) {
@@ -266,6 +266,5 @@ RayHitResult Scene::IntersectByRay(Ray& ray)
 	//Remember: a ray can potentially intersect with more than one object
 	//We are only interested in the closest one, i.e. one with the smallest positive t
 	//Check result.t for the parametric result of the interesection
-
 	return result;
 }
