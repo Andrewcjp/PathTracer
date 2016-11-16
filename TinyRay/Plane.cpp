@@ -89,10 +89,11 @@ Colour Plane::GetNormalColour(Vector3 point) {
 		float u = point.DotProduct(UAxis) * MeshScale;
 		float v = point.DotProduct(VAxis) * MeshScale;
 		Colour texelvector = GetMaterial()->GetNormalTexture()->GetTexelColour(u, v);
-		texelvector[0] = (2 * texelvector[0]) - 1;
+		/*texelvector[0] = (2 * texelvector[0]) - 1;
 		texelvector[1] = (2 * texelvector[1]) - 1;
-		texelvector[2] = (2 * texelvector[2]) - 1;
+		texelvector[2] = (2 * texelvector[2]) - 1;*/
 		return texelvector;// *mat->GetDiffuseColour();
 	}
+	return Colour(0, 0, 0);
 }
 

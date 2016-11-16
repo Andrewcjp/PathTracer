@@ -97,6 +97,8 @@ void RayTracer::DoRayTrace(Scene* pScene)
 		glClear(GL_COLOR_BUFFER_BIT);
 		Colour colour;
 		int current = 0;
+		Primitive* lastprim = nullptr;
+		Primitive* currentprim;
 		//TinyRay on multiprocessors using OpenMP!!!
 #pragma omp parallel for schedule (dynamic, 1) private(colour)		
 		for (int i = 0; i < m_buffHeight; i += 1) {
@@ -104,22 +106,33 @@ void RayTracer::DoRayTrace(Scene* pScene)
 				current = i + j;
 				colour = Colour(0, 0, 0);
 				Vector3 pixel;
-				//calculate the metric size of a pixel in the view plane (e.g. framebuffer)
-				if (SuperSample == true) {
-					float amt = 4;
-					float diffrenceamt = 0.3;
 
-					for (int x = 0; x < amt / 2; x++) {
-						for (int y = 0; y < amt / 2; y++) {
+				pixel[0] = start[0] + (i + 0.5) * camUpVector[0] * pixelDY
+					+ (j + 0.5) * camRightVector[0] * pixelDX;
+				pixel[1] = start[1] + (i + 0.5) * camUpVector[1] * pixelDY
+					+ (j + 0.5) * camRightVector[1] * pixelDX;
+				pixel[2] = start[2] + (i + 0.5) * camUpVector[2] * pixelDY
+					+ (j + 0.5) * camRightVector[2] * pixelDX;
+				Ray primray;
+				primray.SetRay(camPosition, (pixel - camPosition).Normalise());
+				//find our primitve
+				currentprim = (Primitive*)pScene->IntersectByRay(primray).data;
+				//calculate the metric size of a pixel in the view plane (e.g. framebuffer)
+				if (SuperSample == true /*&& currentprim != lastprim*/) {
+					float amt = 2;
+					float diffrenceamt = 0.3;
+					lastprim = currentprim;
+					for (int x = 0; x < amt; x++) {
+						for (int y = 0; y < amt; y++) {
 							float Xadd = -diffrenceamt*x;
 							float Yadd = -diffrenceamt*y;
-							if (x > (amt / 2 / 2) - 1) {
+							if (x > (amt / 2) - 1) {
 								//second pass move over 1
-								Xadd = diffrenceamt*(x - (amt / 2 / 2) - 1);
+								Xadd = diffrenceamt*(x - (amt / 2) - 1);
 							}
-							if (y > (amt / 2 / 2) - 1) {
+							if (y > (amt / 2) - 1) {
 								//second pass move over 1
-								Yadd = diffrenceamt*(y - (amt / 2 / 2) - 1);
+								Yadd = diffrenceamt*(y - (amt / 2) - 1);
 							}
 							pixel[0] = start[0] + (i + Xadd + 0.5) * camUpVector[0] * pixelDY
 								+ (j + Yadd + 0.5) * camRightVector[0] * pixelDX;
@@ -145,10 +158,7 @@ void RayTracer::DoRayTrace(Scene* pScene)
 							colour = colour + this->TraceScene(pScene, viewray, scenebg, m_traceLevel);
 						}
 					}
-					currentdepth = 0;
-					//	}
-					//	colour = 4.0 /colour / ;
-					float dvisor = amt;
+					float dvisor = amt*amt;
 					colour[0] = colour[0] / dvisor;
 					colour[1] = colour[1] / dvisor;
 					colour[2] = colour[2] / dvisor;
@@ -217,8 +227,6 @@ Colour RayTracer::TraceScene(Scene* pScene, Ray& ray, Colour incolour, int trace
 	Material* mat = prim->GetMaterial();
 	if (result.data) //the ray has hit something
 	{
-
-
 		//TODO:1. Non-recursive ray tracing:
 		//	 When a ray intersect with an objects, determine the colour at the intersection point
 		//	 using CalculateLighting
@@ -227,12 +235,11 @@ Colour RayTracer::TraceScene(Scene* pScene, Ray& ray, Colour incolour, int trace
 		if (m_traceflag & TRACE_REFLECTION)
 		{
 			//TODO: trace the reflection ray from the intersection point
-			if (mat->GetReflectivity() > 0.0f) {
+			if (mat->GetReflectivity() > 0.0) {
 				if (tracelevel > 1) {
 					Ray reflectRay = Ray();
-					//Vector3 rray = ray.GetRay() - result.normal* (2.0 * (ray.GetRay().DotProduct(result.normal)));
 					Vector3 rray = ray.GetRay().Reflect(result.normal);
-					Vector3 bias = rray.Normalise() * 0.05f;
+					Vector3 bias = rray.Normalise() * 0.05;
 					reflectRay.SetRay(result.point + bias, rray);
 					Vector3 reft;
 					//a_Acc += refl * rcol * prim->GetMaterial()->GetColor();
@@ -250,7 +257,7 @@ Colour RayTracer::TraceScene(Scene* pScene, Ray& ray, Colour incolour, int trace
 			if (mat->GetRefractivity() > 0.0f) {
 				if (tracelevel > 1) {
 					Ray refractRay = Ray();
-					Vector3 raray = ray.GetRay().Normalise().Refract(result.normal.Normalise(), (1.0 / 1.1));
+					Vector3 raray = ray.GetRay().Normalise().Refract(result.normal.Normalise(), (1.0 / mat->GetRefractivity()));
 					Vector3 bias = raray * 0.01;
 					refractRay.SetRay(result.point + bias, raray);
 					Vector3 reft;
@@ -279,67 +286,60 @@ Colour RayTracer::TraceScene(Scene* pScene, Ray& ray, Colour incolour, int trace
 		{
 			//TODO: trace the shadow ray from the intersection point	
 			std::vector<Light*>::iterator lit_iter = light_list->begin();
-			float shadowsum = 1;
+			float shadowAccum = 0;
+			int count = 4;
+			int samplecount = count * count;
+			double tlight = 0;//calculate where our light is along our ray.
+			double bias = 0.0001;
 			for (int i = 0; i < light_list->size(); i++) {
-				shadowsum = 1;
 				Ray shadowray = Ray();
 				RayHitResult shadowresult;
 				Light* clight = *(lit_iter + i);
-				Vector3 dir = (clight->GetLightPosition() - result.point).Normalise();
-				Vector3 bias = dir * 0.0001;
-				// get the Tangent and the bit tangentin the u and ?V? axis;
-				Vector3 tangent = result.normal.CrossProduct(prim->GetUAxis().Normalise());
-				Vector3 bitangent = tangent.CrossProduct(result.normal);
 				//we will check the pixels around our centre line
-				//then avgere the result
+				//then avg the result
 				//x need to bit tangent and y is tangent
 				if (Softshadows == true) {
-
-					int samplecount = 6;
-					float shadowAccum = 0;
-					float samplemove = 0.1;
-					for (int x = -1; x <= 1; x++) {
-						for (int y = -1; y <= 1; y++) {
+					shadowAccum = 0;
+					//adjust the light position so that we start offset from centre
+					Vector3 adjustlightpos(clight->GetLightPosition()[0] - count / 2.0, clight->GetLightPosition()[1], clight->GetLightPosition()[2] - count / 2.0);
+					for (int x = 0; x < count; x++) {
+						for (int y = 0; y < count; y++) {
 							//get the offset in the T axis
-							Vector3 offsetxdir = (tangent*(samplemove*x));
-							Vector3 offsetydir = (bitangent*(samplemove*y));
-							shadowray.SetRay(result.point + offsetxdir + offsetydir + bias, dir);
+							double rand = (double)(std::rand() % (100 - 0 + 1)) / 100.0;
+							Vector3 lightpos = Vector3(adjustlightpos[0] + x + rand, adjustlightpos[1], adjustlightpos[2] + y + rand);
+							shadowray.SetRay(result.point + lightpos *bias, (lightpos - result.point).Normalise());
 							shadowresult = pScene->IntersectByRay(shadowray);
-							if (shadowresult.data) {
+							tlight = Distance(result.point, lightpos);
+							if (shadowresult.data && shadowresult.t < tlight) {
 								//we hit something
 								if (((Primitive*)shadowresult.data)->GetMaterial()->CastShadow() == true) {
 									shadowAccum += 1;
 								}
+
 							}
 						}
 					}
-					//outcolour = outcolour * (1.0 - (shadowAccum / samplecount));
+					outcolour = outcolour * (1.0 - (shadowAccum / samplecount));
 				}
 				else
 				{
-					shadowray.SetRay(result.point + bias, dir);
+					Vector3 dir = (clight->GetLightPosition() - result.point).Normalise();
+					shadowray.SetRay(result.point + dir *bias, dir);
 					shadowresult = pScene->IntersectByRay(shadowray);
-					float tlight = 0;//calculate where our light is along our ray.
 					//t is intersection distance along ray
 					//so:
 					tlight = Distance(result.point, clight->GetLightPosition());
-					if (shadowresult.data) {
+					if (shadowresult.data && shadowresult.t < tlight) {
 						//we hit something
-						if (shadowresult.t < tlight) {
-							//check that the object we hit is not past our light
-							if (((Primitive*)shadowresult.data)->GetMaterial()->CastShadow() == true) {
-								shadowsum = 0.25f;
-								outcolour = outcolour * shadowsum;
-							}
+						//check that the object we hit is not past our light
+						if (((Primitive*)shadowresult.data)->GetMaterial()->CastShadow() == true) {
+							outcolour = outcolour * 0.25f;
 						}
 					}
-
 				}
 			}
-
 		}
 	}
-
 	return outcolour;
 }
 
@@ -353,22 +353,18 @@ Vector3 TimesMat(Vector3 target, Vector3 bitangent, Vector3 tangent, Vector3 nor
 //todo: sphereical Texture warpping
 //todo: box texture wrapping.
 //todo: ? handle uv mapping
-//todo: handle multiple lights
 Colour RayTracer::CalculateLighting(std::vector<Light*>* lights, Vector3* campos, RayHitResult* hitresult)
 {
-
 	Colour outcolour;
 	Colour Linearcolsum;
 	std::vector<Light*>::iterator lit_iter = lights->begin();
 
 	Primitive* prim = (Primitive*)hitresult->data;
 	Material* mat = prim->GetMaterial();
-
-	outcolour = mat->GetAmbientColour();
 	Colour CurrentDiffuse = mat->GetAmbientColour();
 	if (m_traceflag & TRACE_DIFFUSE_AND_SPEC) {
 		CurrentDiffuse = prim->GetDiffuseColour(hitresult->point);
-		if ((m_traceflag & TRACE_REFLECTION) && mat->GetSpecularColour().Norm() > 0.1) {
+		if ((m_traceflag & TRACE_REFLECTION) && mat->GetReflectivity() > 0.0) {
 			CurrentDiffuse = prim->GetRelfectionColour();
 		}
 	}
@@ -382,8 +378,6 @@ Colour RayTracer::CalculateLighting(std::vector<Light*>* lights, Vector3* campos
 			//TODO: Calculate and apply the lighting of the intersected object using the illumination model covered in the lecture
 			//i.e. diffuse using Lambertian model, for specular, you can use either Phong or Blinn-Phong model
 			Light* clight = *(lit_iter + i);
-			Vector3 diff = (clight->GetLightPosition() - hitresult->point);
-			float distance = sqrtf(diff.DotProduct(diff));
 			Vector3 normal;
 			if (normalmapping && (mat->HasNormalTexture() == true)) {
 				//preturb the normal to the simulted normal
@@ -393,37 +387,36 @@ Colour RayTracer::CalculateLighting(std::vector<Light*>* lights, Vector3* campos
 			{
 				normal = hitresult->normal.Normalise();
 			}
-			Vector3 tangent = normal.CrossProduct(prim->GetUAxis().Normalise());//todo: might need to be V axis here to get the bittangent along the U axis
-			Vector3 bitangent = tangent.CrossProduct(normal).Normalise();
 			Vector3 eyepos = campos->Normalise();
 			Vector3 lightpos = clight->GetLightPosition();
 			Vector3 pos = hitresult->point;
-			//convert opsitions to TBN
+			//convert positons to TBN
 			if (normalmapping && (mat->HasNormalTexture() == true)) {
+				Vector3 tangent = normal.CrossProduct(prim->GetUAxis().Normalise());
+				Vector3 bitangent = tangent.CrossProduct(normal).Normalise();
+
 				lightpos = TimesMat(lightpos, bitangent, tangent, normal);
 				eyepos = TimesMat(eyepos, bitangent, tangent, normal);
-				pos = TimesMat(pos, bitangent, tangent, normal);
-				CurrentDiffuse = prim->GetDiffuseColour(pos);
+				//		pos = TimesMat(pos, bitangent, tangent, normal);
+				//		CurrentDiffuse = prim->GetDiffuseColour(pos);
 			}
 			Vector3 lightdir = (lightpos - pos).Normalise();
-			float diffuseamt = max(lightdir.DotProduct(normal), 0.0);
-			float specular = 0;
+			double diffuseamt = max(lightdir.DotProduct(normal), 0.0);
+			double specular = 0;
 
-			//diffuseamt = (max(diffuseamt, 0), 1);
 			//bhlim-phong
 			if (blinn) {
 				Vector3 H = (lightdir + eyepos).Normalise();//half vector
-				float ndotH = max(normal.DotProduct(H), 0.0);
+				double ndotH = max(normal.DotProduct(H), 0.0);
 				specular = pow(ndotH, mat->GetSpecPower());
 			}
-			else {
+			else
+			{
 				Vector3 invlightdir = lightdir*-1.0;
 				Vector3 R = invlightdir.Reflect(normal).Normalise();
 				//R = R * -1;
 				specular = pow(max(eyepos.DotProduct(R), 0.0), mat->GetSpecPower());
 			}
-			//specular = min(max(specular, 0), 1);
-
 			Colour out = mat->GetAmbientColour()
 				+ (CurrentDiffuse * clight->GetLightColour()*prim->GetRefractedColour()  * diffuseamt)
 				+ (mat->GetSpecularColour() * clight->GetLightColour()*prim->GetRefractedColour()   *  specular);

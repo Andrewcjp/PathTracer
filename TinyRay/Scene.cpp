@@ -33,7 +33,7 @@ void Scene::InitDefaultScene()
 	newmat->SetDiffuseColour(1.0, 0.0, 0.0);
 	newmat->SetSpecularColour(1.0, 1.0, 1.0);
 	newmat->SetReflectivity(1);
-	newmat->SetRefractivity(1);
+	newmat->SetRefractivity(1.1);
 	newmat->SetSpecPower(20);
 	newobj->SetMaterial(newmat);
 	m_sceneObjects.push_back(newobj);
@@ -46,7 +46,7 @@ void Scene::InitDefaultScene()
 	newmat->SetDiffuseColour(0.8, 0.8, 0.8);
 	newmat->SetSpecularColour(1.0, 1.0, 1.0);
 	newmat->SetReflectivity(1);
-	newmat->SetRefractivity(1);
+	newmat->SetRefractivity(1.1);
 	newmat->SetSpecPower(20);
 	newobj->SetMaterial(newmat);
 	m_sceneObjects.push_back(newobj);
@@ -60,15 +60,12 @@ void Scene::InitDefaultScene()
 	newmat->SetAmbientColour(0.0, 0.0, 0.0);
 	newmat->SetDiffuseColour(0.0, 0.0, 0.0);
 	newmat->SetSpecularColour(0.0, 0.0, 0.0);
-
 	Texture* Diffuse = new Texture();
 	Diffuse->LoadTextureFromFile("../newBricks.bmp");
 	Texture* normal = new Texture();
 	normal->LoadTextureFromFile("../N_newBricks.bmp");
-
 	newmat->SetDiffuseTexture(Diffuse);
 	newmat->SetNormalTexture(normal);
-
 	newmat->SetSpecPower(10);
 	newobj->SetMaterial(newmat);
 	m_sceneObjects.push_back(newobj);
@@ -84,7 +81,7 @@ void Scene::InitDefaultScene()
 	newmat->SetDiffuseColour(0.0, 0.8, 0.0);
 	newmat->SetSpecularColour(1.0, 1.0, 1.0);
 	newmat->SetReflectivity(1);
-	newmat->SetRefractivity(1);
+	newmat->SetRefractivity(1.1);
 	newmat->SetSpecPower(2);
 	newobj->SetMaterial(newmat);
 	m_sceneObjects.push_back(newobj);
@@ -97,7 +94,7 @@ void Scene::InitDefaultScene()
 	newmat->SetDiffuseColour(1.0, 1.0, 1.0);
 	newmat->SetSpecularColour(1.0, 1.0, 1.0);
 	newmat->SetReflectivity(1);
-	newmat->SetRefractivity(1);
+	newmat->SetRefractivity(1.1);
 	newmat->SetSpecPower(2);
 	newobj->SetMaterial(newmat);
 	m_sceneObjects.push_back(newobj);
@@ -110,7 +107,7 @@ void Scene::InitDefaultScene()
 	newmat->SetDiffuseColour(0.0, 0.0, 0.9);
 	newmat->SetSpecularColour(1.0, 1.0, 1.0);
 	newmat->SetReflectivity(1);
-	newmat->SetRefractivity(1);
+	newmat->SetRefractivity(1.1);
 	newmat->SetSpecPower(20);
 	newobj->SetMaterial(newmat);
 	m_sceneObjects.push_back(newobj);
@@ -174,7 +171,7 @@ void Scene::InitDefaultScene()
 	Light *newlight = new Light();
 	newlight->SetLightPosition(0, 5, 10.0);
 	newlight->SetLightColour(0.5, 0.5, 0.5);
-	m_lights.push_back(newlight);
+//	m_lights.push_back(newlight);
 	//Create one light source for the scene
 	newlight = new Light();
 	newlight->SetLightPosition(0.0, 15.0, 10.0);
