@@ -62,7 +62,7 @@ class Material
 {
 private:
 	Colour mAmbient;					//Ambient colour of the material
-	Colour mDiffuse;					//Diffuse colour of the material
+	Colour mDiffuse = Colour(1,0,0);	//Diffuse colour of the material
 	Colour mSpecular;					//Specular colour of the material
 	double mSpecpower;					//Specular power of the material
 	Texture* mDiffuse_texture;			//Colour (diffuse) texture of the material for texture mapped primitives
@@ -116,7 +116,6 @@ public:
 
 	inline Colour& GetDiffuseColour()
 	{
-
 		return mDiffuse;
 	}
 

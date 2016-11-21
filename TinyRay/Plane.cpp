@@ -62,7 +62,7 @@ Colour Plane::GetDiffuseColour(Vector3 point) {
 	if (GetMaterial()->HasDiffuseTexture()) {
 		float u = point.DotProduct(UAxis) * MeshScale;
 		float v = point.DotProduct(VAxis) * MeshScale;
-		return GetMaterial()->GetDiffuseTexture()->GetTexelColour(u, v) *GetMaterial()->GetDiffuseColour();
+		return GetMaterial()->GetDiffuseTexture()->GetTexelColour(u, v) * GetMaterial()->GetDiffuseColour();
 	}
 	else
 	{

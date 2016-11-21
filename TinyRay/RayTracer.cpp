@@ -256,7 +256,7 @@ Colour RayTracer::TraceScene(Scene* pScene, Ray& ray, Colour incolour, int trace
 					Vector3d bias = rray.Normalise() * 0.05;
 					reflectRay.SetRay(result.point + bias, rray);
 					Vector3d reft = TraceScene(pScene, reflectRay, outcolour, tracelevel);
-					Reflection = reft * prim->GetMaterial()->GetDiffuseColour();
+					Reflection = reft * prim->GetDiffuseColour(result.point);
 					prim->SetRelfection(Reflection);
 					outcolour = CalculateLighting(light_list, &cameraPosition, &result);
 				}
@@ -283,8 +283,8 @@ Colour RayTracer::TraceScene(Scene* pScene, Ray& ray, Colour incolour, int trace
 						expf(absorbance[1]),
 						expf(absorbance[2]));
 
-					Refraction = (reft)*prim->GetMaterial()->GetSpecularColour() + (prim->GetMaterial()->GetDiffuseColour() *0.1f);// *0.8f;
-					outcolour = (reft)*prim->GetMaterial()->GetSpecularColour() + (prim->GetMaterial()->GetDiffuseColour() *0.1f);// *0.8f;
+					Refraction = (reft)*prim->GetMaterial()->GetSpecularColour() + (prim->GetDiffuseColour(result.point) *0.1f);// *0.8f;
+					outcolour = (reft)*prim->GetMaterial()->GetSpecularColour() + (prim->GetDiffuseColour(result.point) *0.1f);// *0.8f;
 					prim->SetRefraction(Refraction);
 					//outcolour = CalculateLighting(light_list, &cameraPosition, &result);
 					if (m_traceflag & TRACE_REFLECTION) {
@@ -350,6 +350,8 @@ Colour RayTracer::TraceScene(Scene* pScene, Ray& ray, Colour incolour, int trace
 				}
 			}
 		}
+		//todo :remove i have enough problems allready
+
 		if (AmbientOcclusion) {
 			int samples = 16;
 			float AO = samples;
@@ -365,13 +367,6 @@ Colour RayTracer::TraceScene(Scene* pScene, Ray& ray, Colour incolour, int trace
 			//needs to be weighted by the dot product of ray dir and nromal
 			outcolour = outcolour*(1.0 - 1) + outcolour* ((AO * 1) / samples);
 		}
-
-		/*	GISamples = 16;
-
-			ODGISamples = 1.0f / (float)GISamples;
-			AmbientOcclusionIntensity = 0.5f;*/
-			//  ODGISamplesMAmbientOcclusionIntensity = ODGISamples * AmbientOcclusionIntensity;
-
 	}
 	return outcolour;
 }

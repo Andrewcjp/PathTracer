@@ -12,7 +12,7 @@
 #include "Vector3.h"
 #include "Ray.h"
 #include <vector>
-
+#include "Vector2.h"
 //Struct representing a 3D vertex
 typedef struct
 {
@@ -23,24 +23,27 @@ typedef struct
 
 class Triangle : public Primitive
 {
-	private:
+private:
+	Vector3 texcoords;
+public:
+	Colour GetDiffuseColour(Vector3 point);
+	Colour GetNormalColour(Vector3 point);
+	Vertex	m_vertices[3];
 
-	public:
-		Vertex	m_vertices[3];
+	Triangle();
+	Triangle(Vector3 pos1, Vector3 pos2, Vector3 pos3);
+	~Triangle();
 
-		Triangle();
-		Triangle(Vector3 pos1, Vector3 pos2, Vector3 pos3);
-		~Triangle();
-	
-		void SetVertices(Vector3& v0, Vector3& v1, Vector3& v2);
-		void SetNormals(Vector3& n0, Vector3& n1, Vector3& n2);
-		void SetTexCoords(Vector3& t0, Vector3& t1, Vector3& t2);
+	void SetVertices(Vector3& v0, Vector3& v1, Vector3& v2);
+	void SetNormals(Vector3& n0, Vector3& n1, Vector3& n2);
+	void SetTexCoords(Vector3& t0, Vector3& t1, Vector3& t2);
 
-		
+	Vector3 GetBarycentricCoords(Vector3 & point);
 
-		//Method for calculating the Barycentric coordinates of a input point
-		Vector3 GetBarycentricCoords(Vector3d & point);
 
-		RayHitResult IntersectByRay(Ray& ray);
+
+	//Method for calculating the Barycentric coordinates of a input point
+
+	RayHitResult IntersectByRay(Ray& ray);
 };
 

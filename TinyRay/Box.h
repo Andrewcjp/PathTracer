@@ -27,6 +27,8 @@ class Box : public Primitive
 		void SetBox(Vector3 position, double width, double height, double depth);
 
 		RayHitResult IntersectByRay(Ray& ray);
+		Colour GetDiffuseColour(Vector3 point);
+		Colour GetNormalColour(Vector3 point);
 
 };
 

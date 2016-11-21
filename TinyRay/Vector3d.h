@@ -14,6 +14,7 @@ public:
 	Vector3d(Vector3& rhs);
 	Vector3d(double x, double y, double z);
 	operator Vector3() const;
+	operator Vector3();
 	//Vector3(const Vector3d& rhs);
 	~Vector3d() { ; }
 

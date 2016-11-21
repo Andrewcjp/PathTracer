@@ -38,6 +38,11 @@ Vector3d::operator Vector3() const
 	return Vector3(m_element[0], m_element[1], m_element[2]);
 }
 
+Vector3d::operator Vector3()
+{
+	return Vector3(m_element[0], m_element[1], m_element[2]);
+}
+
 double Vector3d::operator [] (const int i) const
 {
 	return m_element[i];

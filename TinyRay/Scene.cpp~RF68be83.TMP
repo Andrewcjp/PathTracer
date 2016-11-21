@@ -58,7 +58,7 @@ void Scene::InitDefaultScene()
 	newmat->SetAmbientColour(0.0, 0.0, 0.0);
 	newmat->SetDiffuseColour(1, 1, 1);
 	newmat->SetSpecularColour(0.0, 0.0, 0.0);
-	newmat->SetReflectivity(1);
+	newmat->SetReflectivity(0);
 	newmat->SetRefractivity(0);
 	Texture* spDiffuse = new Texture();
 	spDiffuse->LoadTextureFromFile("../newBricks.bmp");
@@ -68,8 +68,11 @@ void Scene::InitDefaultScene()
 	m_sceneObjects.push_back(newobj);
 	m_objectMaterials.push_back(newmat);
 
+
+
+
 	ObjLoader loader;
-	Mesh* mesh = loader.BuildMesh("../Monkey.obj");	
+	Mesh* mesh = loader.BuildMesh("../cube.obj");
 	for (int i = 0; i < mesh->m_Data.size(); i++) {
 		newobj = mesh->m_Data[i];
 		newmat = new Material();
@@ -80,12 +83,6 @@ void Scene::InitDefaultScene()
 		newmat->SetReflectivity(0);
 		newmat->SetRefractivity(0);
 		newmat->SetSpecPower(10);
-		Texture* testDiffuse = new Texture();
-		testDiffuse->LoadTextureFromFile("../newBricks.bmp");
-		Texture* normal = new Texture();
-		normal->LoadTextureFromFile("../N_newBricks.bmp");
-		newmat->SetNormalTexture(normal);
-		newmat->SetDiffuseTexture(testDiffuse);
 		newobj->SetMaterial(newmat);
 		m_sceneObjects.push_back(newobj);
 		m_objectMaterials.push_back(newmat);
@@ -270,12 +267,7 @@ RayHitResult Scene::IntersectByRay(Ray& ray)
 	RayHitResult tmp;
 
 	std::vector<RayHitResult> hits;
-	bool ignoretris = true;
 	for (int i = 0; i < m_sceneObjects.size(); i++) {
-		if (m_sceneObjects[i]->m_primtype == Primitive::PRIMTYPE_Triangle) {
-			//ignore a triable this frame
-			continue;
-		}
 		tmp = m_sceneObjects[i]->IntersectByRay(ray);
 
 		if (tmp.data) {

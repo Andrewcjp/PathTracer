@@ -21,6 +21,8 @@ private:
 	Material				*m_pMaterial;		//pointer to the material associated to the primitive
 	Colour					m_reflectioncol;	//the current relfection colour.
 	Colour					m_refractedcolour;	// the colour if this is refractive
+protected:
+	float meshScale = 0.1;
 public:
 	//enum for primitive types
 	enum PRIMTYPE
@@ -28,7 +30,8 @@ public:
 		PRIMTYPE_Plane = 0,	//plane
 		PRIMTYPE_Sphere, //sphere
 		PRIMTYPE_Triangle, //generic triangle
-		PRIMTYPE_Box //box
+		PRIMTYPE_Box, //box
+		RIMTYPE_Bounding
 	};
 
 	PRIMTYPE				m_primtype; //primitive type
