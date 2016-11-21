@@ -1,0 +1,90 @@
+/*---------------------------------------------------------------------
+*
+* Copyright © 2015  Minsi Chen
+* E-mail: m.chen@derby.ac.uk
+*
+* The source is written for the Graphics I and II modules. You are free
+* to use and extend the functionality. The code provided here is functional
+* however the author does not guarantee its performance.
+---------------------------------------------------------------------*/
+#include <stdlib.h>
+#include "Material.h"
+#include "ImageIO.h"
+
+Material::Material()
+{
+	SetDefaultMaterial();
+}
+
+
+Material::~Material()
+{
+	if (mDiffuse_texture) delete mDiffuse_texture;
+}
+
+void Material::SetDefaultMaterial()
+{
+	//default material
+	//black ambient colour
+	//white diffuse and specular
+	//spec power is 10
+
+	SetAmbientColour(0.0, 0.0, 0.0);
+	SetDiffuseColour(1.0, 1.0, 1.0);
+	SetSpecularColour(1.0, 1.0, 1.0);
+	SetSpecPower(10.0);
+	mDiffuse_texture = NULL;
+	mNormal_texture = NULL;
+	mCastShadow = true;
+	mReflectivity = 0;
+	mRefractiveIndex = 0;
+}
+
+void Material::SetAmbientColour(float r, float g, float b)
+{
+	mAmbient.SetVector(r, g, b);
+}
+
+void Material::SetDiffuseColour(float r, float g, float b)
+{
+	mDiffuse.SetVector(r, g, b);
+}
+
+void Material::SetSpecularColour(float r, float g, float b)
+{
+	mSpecular.SetVector(r, g, b);
+}
+
+void Material::SetSpecPower(double spow)
+{
+	mSpecpower = spow;
+}
+Colour Texture::GetBiLinearFilteredColour(double u, double v) {
+	if (mImage == NULL) {
+		//ether the image failed to load or the image was never set 
+		//so we return black
+		return Colour(0, 0, 0);
+	}
+	// fetch a bilinearly filtered texel
+	float fu = (u ) * mWidth;
+	float fv = (v ) * mWidth;
+	int u1 = ((int)fu) % mWidth;
+	int v1 = ((int)fv) % mHeight;
+	int u2 = (u1 + 1) % mWidth;
+	int v2 = (v1 + 1) % mHeight;
+	// calculate fractional parts of u and v
+	float fracu = fu - floorf(fu);
+	float fracv = fv - floorf(fv);
+	// calculate weight factors
+	float w1 = (1 - fracu) * (1 - fracv);
+	float w2 = fracu * (1 - fracv);
+	float w3 = (1 - fracu) * fracv;
+	float w4 = fracu *  fracv;
+	// fetch four texels
+	Colour c1 = GetTexelColour(u1, v1);// mImage[u1 + v1 * mWidth];
+	Colour c2 = GetTexelColour(u2, v1);// mImage[u2 + v1 * mWidth];
+	Colour c3 = GetTexelColour(u1, v2);// mImage[u1 + v2 * mWidth];
+	Colour c4 = GetTexelColour(u2, v2);// mImage[u2 + v2 * mWidth];
+									   // scale and sum the four colors
+	return c1 * w1 + c2 * w2 + c3 * w3 + c4 * w4;
+}

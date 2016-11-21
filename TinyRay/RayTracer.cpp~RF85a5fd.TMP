@@ -120,7 +120,7 @@ void RayTracer::DoRayTrace(Scene* pScene)
 				currentprim = (Primitive*)pScene->IntersectByRay(primray).data;
 				//calculate the metric size of a pixel in the view plane (e.g. framebuffer)
 				if (SuperSample == true /*&& currentprim != lastprim*/) {
-					float amt = AAFactor;
+					float amt = 3;
 					float diffrenceamt = 0.3;
 					lastprim = currentprim;
 					for (int x = 0; x < amt; x++) {
@@ -413,8 +413,8 @@ Colour RayTracer::CalculateLighting(std::vector<Light*>* lights, Vector3d* campo
 			Light* clight = *(lit_iter + i);
 			Vector3 normal;
 			if (normalmapping && (mat->HasNormalTexture() == true)) {
-				//change the normal to the simulted normal
-				normal = prim->GetNormalColour(hitresult->point);
+				//preturb the normal to the simulted normal
+				normal = prim->GetNormalColour(hitresult->point).Normalise();
 			}
 			else
 			{
@@ -423,9 +423,20 @@ Colour RayTracer::CalculateLighting(std::vector<Light*>* lights, Vector3d* campo
 			Vector3d eyepos = campos->Normalise();
 			Vector3d lightpos = clight->GetLightPosition();
 			Vector3d pos = hitresult->point;
+			//convert positons to TBN
+			if (normalmapping && (mat->HasNormalTexture() == true)) {
+				/*Vector3 tangent = normal.CrossProduct(prim->GetUAxis().Normalise());
+				Vector3 bitangent = tangent.CrossProduct(normal).Normalise();
+
+				lightpos = TimesMat(lightpos, bitangent, tangent, normal);
+				eyepos = TimesMat(eyepos, bitangent, tangent, normal);*/
+				//		pos = TimesMat(pos, bitangent, tangent, normal);
+				//		CurrentDiffuse = prim->GetDiffuseColour(pos);
+			}
 			Vector3 lightdir = (lightpos - pos).Normalise();
 			double diffuseamt = max(lightdir.DotProduct(normal), 0.0);
 			double specular = 0;
+
 			//bhlim-phong
 			if (blinn) {
 				Vector3 H = (lightdir + eyepos).Normalise();//half vector

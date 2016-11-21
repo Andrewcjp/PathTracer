@@ -29,7 +29,7 @@ public:
 	Vector3& operator = (const Vector3& rhs);
 	Vector3 operator * (const Vector3& rhs) const;
 	Vector3 operator * (float scale) const;
-
+	Vector3 operator /(float amt) const;
 	float Norm()	const;
 	float Norm_Sqr() const;
 	Vector3 Normalise();

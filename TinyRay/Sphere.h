@@ -14,25 +14,28 @@
 
 class Sphere : public Primitive
 {
-	private:
-		Vector3				m_centre;			//location of the centre of the sphere
-		double				m_radius;			//the radius of the sphere
+private:
+	Vector3				m_centre;			//location of the centre of the sphere
+	double				m_radius;			//the radius of the sphere
+	Vector3 m_Vn;
+	Vector3 m_Ve;
+	Vector3 m_Vc;
+public:
+	Sphere();
+	Sphere(double x, double y, double z, double r);
+	~Sphere();
 
-	public:
-		Sphere();
-		Sphere(double x, double y, double z, double r);
-		~Sphere();
+	inline Vector3&		GetCentre()
+	{
+		return m_centre;
+	}
 
-		inline Vector3&		GetCentre()
-		{
-			return m_centre;
-		}
+	inline double		GetRadius()
+	{
+		return m_radius;
+	}
 
-		inline double		GetRadius()
-		{
-			return m_radius;
-		}
-
-		RayHitResult		IntersectByRay(Ray& ray);
+	RayHitResult		IntersectByRay(Ray& ray);
+	Colour Sphere::GetDiffuseColour(Vector3 point);
 };
 

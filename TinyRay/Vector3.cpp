@@ -80,6 +80,15 @@ Vector3 Vector3::operator * (float scale) const
 		);
 }
 
+Vector3 Vector3::operator/(float amt) const
+{
+	return Vector3(
+		m_element[0] / amt,
+		m_element[1] / amt,
+		m_element[2] / amt
+		);
+}
+
 float Vector3::Norm() const
 {
 	return sqrt(m_element[0] * m_element[0] + m_element[1] * m_element[1] + m_element[2] * m_element[2]);

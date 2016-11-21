@@ -23,7 +23,6 @@ private:
 	int				m_buffHeight;
 	int				m_renderCount;
 	int				m_traceLevel;
-	int currentdepth = 0;
 	//Trace the scene from a given ray and scene
 	//Params:
 	//	Scene* pScene		pointer to the scene being traced
@@ -33,18 +32,21 @@ private:
 	//  bool shadowray		true if the input ray is a shadow ray, could be useful when handling shadows
 	Colour TraceScene(Scene* pScene, Ray& ray, Colour incolour, int tracelevel, bool shadowray = false);
 
+
+
 	//Compute lighting for a given ray-primitive intersection result
 	//Params:
 	//			std::vector<Light*>* lights     pointer to a list of active light sources
 	//			Vector3*	pointer to the active camera
 	//			RayHitResult* hitresult		Hit result from ray-primitive intersection
-	Colour CalculateLighting(std::vector<Light*>* lights, Vector3* campos, RayHitResult* hitresult);
+	Colour CalculateLighting(std::vector<Light*>* lights, Vector3d * campos, RayHitResult * hitresult);
 
 	//extra options 
 	bool SuperSample = false;
 	bool Softshadows = false;
 	bool normalmapping = false;
-
+	bool AmbientOcclusion = false;
+	int AAFactor = 3;
 public:
 
 	enum TraceFlags
@@ -61,9 +63,17 @@ public:
 	RayTracer();
 	RayTracer(int width, int height);
 	~RayTracer();
-
+	inline void SetExtra(bool AA, bool softshadows, bool nrmmapping) {
+		SuperSample = AA;
+		Softshadows = softshadows;
+		normalmapping = nrmmapping;
+	}
+	inline void SetAAFactor(int factor) {
+		std::cout << "Setting AA factor to " << factor << std::endl;
+		AAFactor = factor;
+	}
 	inline void ToggleNormalMapping() {
-		
+
 		if (normalmapping) {
 			std::cout << "Normal Mapping Disabled" << std::endl;
 			normalmapping = false;
@@ -74,7 +84,7 @@ public:
 		}
 	}
 	inline void ToggleSoftShadows() {
-	
+
 		if (Softshadows) {
 			std::cout << "Soft Shadows Disabled" << std::endl;
 			Softshadows = false;
@@ -84,7 +94,7 @@ public:
 			Softshadows = true;
 		}
 	}
-	inline void ToggleSuperSample() {		
+	inline void ToggleSuperSample() {
 		if (SuperSample) {
 			std::cout << "Super Sampling Disabled" << std::endl;
 			SuperSample = false;
@@ -92,6 +102,16 @@ public:
 		else {
 			std::cout << "Super Sampling Enabled" << std::endl;
 			SuperSample = true;
+		}
+	}
+	inline void ToggleAmbientOcclusion() {
+		if (AmbientOcclusion) {
+			std::cout << "Ambient Occlusion Disabled" << std::endl;
+			AmbientOcclusion = false;
+		}
+		else {
+			std::cout << "Ambient Occlusion Enabled" << std::endl;
+			AmbientOcclusion = true;
 		}
 	}
 	inline void SetTraceLevel(int level)		//Set the level of recursion, default is 5

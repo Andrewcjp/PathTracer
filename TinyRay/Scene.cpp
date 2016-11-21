@@ -54,23 +54,38 @@ void Scene::InitDefaultScene()
 
 
 	newobj = new Plane();
-	static_cast<Plane*>(newobj)->SetPlane(Vector3(0.0, 0.0, 1.0), -20);
+	static_cast<Plane*>(newobj)->SetPlane(Vector3(0.0, 0, 1), -20);
 	newmat = new Material();
 	//mat for the box2
 	newmat->SetAmbientColour(0.0, 0.0, 0.0);
-	newmat->SetDiffuseColour(0.0, 0.0, 0.0);
+	newmat->SetDiffuseColour(1, 1, 1);
 	newmat->SetSpecularColour(0.0, 0.0, 0.0);
 	Texture* Diffuse = new Texture();
 	Diffuse->LoadTextureFromFile("../newBricks.bmp");
+	newmat->SetDiffuseTexture(Diffuse);
 	Texture* normal = new Texture();
 	normal->LoadTextureFromFile("../N_newBricks.bmp");
-	newmat->SetDiffuseTexture(Diffuse);
 	newmat->SetNormalTexture(normal);
 	newmat->SetSpecPower(10);
 	newobj->SetMaterial(newmat);
 	m_sceneObjects.push_back(newobj);
 	m_objectMaterials.push_back(newmat);
 	m_Textures.push_back(Diffuse);
+
+	newobj = new Sphere(10, 2, -10, 2.0); //sphere 2
+	newmat = new Material();
+	newmat->SetAmbientColour(0.0, 0.0, 0.0);
+	newmat->SetDiffuseColour(0.0, 0.8, 0.0);
+	newmat->SetSpecularColour(0, 0, 0);
+	Texture* spDiffuse = new Texture();
+	spDiffuse->LoadTextureFromFile("../newBricks.bmp");
+	newmat->SetDiffuseTexture(spDiffuse);
+	newmat->SetReflectivity(0);
+	newmat->SetRefractivity(0);
+	newmat->SetSpecPower(2);
+	newobj->SetMaterial(newmat);
+	m_sceneObjects.push_back(newobj);
+	m_objectMaterials.push_back(newmat);
 
 
 
@@ -171,8 +186,8 @@ void Scene::InitDefaultScene()
 	Light *newlight = new Light();
 	newlight->SetLightPosition(0, 5, 10.0);
 	newlight->SetLightColour(0.5, 0.5, 0.5);
-//	m_lights.push_back(newlight);
-	//Create one light source for the scene
+	//	m_lights.push_back(newlight);
+		//Create one light source for the scene
 	newlight = new Light();
 	newlight->SetLightPosition(0.0, 15.0, 10.0);
 	m_lights.push_back(newlight);

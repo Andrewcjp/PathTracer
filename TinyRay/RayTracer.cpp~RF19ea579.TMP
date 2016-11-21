@@ -120,7 +120,7 @@ void RayTracer::DoRayTrace(Scene* pScene)
 				currentprim = (Primitive*)pScene->IntersectByRay(primray).data;
 				//calculate the metric size of a pixel in the view plane (e.g. framebuffer)
 				if (SuperSample == true /*&& currentprim != lastprim*/) {
-					float amt = AAFactor;
+					float amt = 3;
 					float diffrenceamt = 0.3;
 					lastprim = currentprim;
 					for (int x = 0; x < amt; x++) {
@@ -214,12 +214,10 @@ float Distance(const Vector3& point1, const Vector3& point2)
 Vector3 randomOnHemisphere(Vector3 direction) {
 	// Cut off the corners of the cube
 	Vector3 v;
-	//do {
 	v = Vector3(
-		2.0 * (float)rand() - 1.0,
-		2.0 * (float)rand() - 1.0,
-		2.0 * (float)rand() - 1.0);
-	//} while (v.Norm() > 1.0f && v.DotProduct(direction));
+		2 * (float)rand() - 1.0,
+		2 * (float)rand() - 1.0,
+		2 * (float)rand() - 1.0);
 	v.Normalise();
 	return v;
 }
@@ -243,14 +241,13 @@ Colour RayTracer::TraceScene(Scene* pScene, Ray& ray, Colour incolour, int trace
 		//TODO:1. Non-recursive ray tracing:
 		//	 When a ray intersect with an objects, determine the colour at the intersection point
 		//	 using CalculateLighting
-
 		outcolour = CalculateLighting(light_list, &cameraPosition, &result);
 		//TODO: 2. The following conditions are for implementing recursive ray tracing
 		if (m_traceflag & TRACE_REFLECTION)
 		{
 			//TODO: trace the reflection ray from the intersection point
 			if (mat->GetReflectivity() > 0.0) {
-				if (tracelevel >= 1) {
+				if (tracelevel > 1) {
 					Ray reflectRay = Ray();
 					Vector3d rray = ray.GetRay().Reflect(result.normal.Normalise());
 					Vector3d bias = rray.Normalise() * 0.05;
@@ -267,7 +264,7 @@ Colour RayTracer::TraceScene(Scene* pScene, Ray& ray, Colour incolour, int trace
 		{
 			//TODO: trace the refraction ray from the intersection point
 			if (mat->GetRefractivity() > 0.0) {
-				if (tracelevel >= 1) {
+				if (tracelevel > 1) {
 					Ray refractRay = Ray();
 					Vector3 raray = ray.GetRay().Normalise().Refract(result.normal.Normalise(), (1.0 / mat->GetRefractivity()));
 					Vector3 bias = raray * 0.01;
@@ -293,6 +290,7 @@ Colour RayTracer::TraceScene(Scene* pScene, Ray& ray, Colour incolour, int trace
 				}
 			}
 		}
+		//todo: clour bleed?
 		if (m_traceflag & TRACE_SHADOW)
 		{
 			//TODO: trace the shadow ray from the intersection point	
@@ -351,27 +349,26 @@ Colour RayTracer::TraceScene(Scene* pScene, Ray& ray, Colour incolour, int trace
 			}
 		}
 		if (AmbientOcclusion) {
-			int samples = 16;
-			float AO = samples;
+			int samples = 10;
+			float hits = 0;
 			for (int i = 0; i < samples; i++) {
-				Vector3 dir = randomOnHemisphere(result.normal);
+				Vector3 dir = randomOnHemisphere(result.normal.Normalise());
 				Ray r;
-				r.SetRay(result.point + (dir *0.0001), dir);
+				float ndotrr = result.normal.Normalise().DotProduct(dir);
+				if (NdotRR < 0.0f)
+				{
+					RandomRay = -RandomRay;
+					NdotRR = -NdotRR;
+				}
+				r.SetRay(result.normal.Normalise(), dir);
+				
 				RayHitResult hit = pScene->IntersectByRay(r);
-				if (hit.data && hit.t < 3) {
-					AO -= 1 * dir.DotProduct(result.normal);
+				if (hit.data) {
+					hits += ndotrr / (1.0 + hit.t * hit.t);
 				}
 			}
-			//needs to be weighted by the dot product of ray dir and nromal
-			outcolour = outcolour*(1.0 - 1) + outcolour* ((AO * 1) / samples);
+			outcolour = outcolour * (1.0 - hits);//max intesity
 		}
-
-		/*	GISamples = 16;
-
-			ODGISamples = 1.0f / (float)GISamples;
-			AmbientOcclusionIntensity = 0.5f;*/
-			//  ODGISamplesMAmbientOcclusionIntensity = ODGISamples * AmbientOcclusionIntensity;
-
 	}
 	return outcolour;
 }
@@ -413,8 +410,8 @@ Colour RayTracer::CalculateLighting(std::vector<Light*>* lights, Vector3d* campo
 			Light* clight = *(lit_iter + i);
 			Vector3 normal;
 			if (normalmapping && (mat->HasNormalTexture() == true)) {
-				//change the normal to the simulted normal
-				normal = prim->GetNormalColour(hitresult->point);
+				//preturb the normal to the simulted normal
+				normal = prim->GetNormalColour(hitresult->point).Normalise();
 			}
 			else
 			{
@@ -423,9 +420,20 @@ Colour RayTracer::CalculateLighting(std::vector<Light*>* lights, Vector3d* campo
 			Vector3d eyepos = campos->Normalise();
 			Vector3d lightpos = clight->GetLightPosition();
 			Vector3d pos = hitresult->point;
+			//convert positons to TBN
+			if (normalmapping && (mat->HasNormalTexture() == true)) {
+				Vector3 tangent = normal.CrossProduct(prim->GetUAxis().Normalise());
+				Vector3 bitangent = tangent.CrossProduct(normal).Normalise();
+
+				lightpos = TimesMat(lightpos, bitangent, tangent, normal);
+				eyepos = TimesMat(eyepos, bitangent, tangent, normal);
+				//		pos = TimesMat(pos, bitangent, tangent, normal);
+				//		CurrentDiffuse = prim->GetDiffuseColour(pos);
+			}
 			Vector3 lightdir = (lightpos - pos).Normalise();
 			double diffuseamt = max(lightdir.DotProduct(normal), 0.0);
 			double specular = 0;
+
 			//bhlim-phong
 			if (blinn) {
 				Vector3 H = (lightdir + eyepos).Normalise();//half vector

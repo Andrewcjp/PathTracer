@@ -10,7 +10,7 @@
 #pragma once
 
 #include <Windows.h>
-
+#include "PerformanceTester.h"
 #include "Scene.h"
 #include "RayTracer.h"
 
@@ -26,7 +26,7 @@ class AppWindow
 
 		RayTracer	*m_pRayTracer;
 		Scene		*m_pScene;
-		
+		PerformanceTester* tester;   // custom tester 
 protected:
 
 		HGLRC CreateOGLContext (HDC hdc);

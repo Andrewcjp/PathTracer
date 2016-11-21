@@ -36,8 +36,10 @@ class Triangle : public Primitive
 		void SetNormals(Vector3& n0, Vector3& n1, Vector3& n2);
 		void SetTexCoords(Vector3& t0, Vector3& t1, Vector3& t2);
 
+		
+
 		//Method for calculating the Barycentric coordinates of a input point
-		Vector3 GetBarycentricCoords(Vector3& point);
+		Vector3 GetBarycentricCoords(Vector3d & point);
 
 		RayHitResult IntersectByRay(Ray& ray);
 };

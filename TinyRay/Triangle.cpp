@@ -56,10 +56,9 @@ void Triangle::SetTexCoords(Vector3& t0, Vector3& t1, Vector3& t2)
 	m_vertices[2].m_texcoords = t2;
 }
 
-Vector3 Triangle::GetBarycentricCoords(Vector3& point)
+Vector3 Triangle::GetBarycentricCoords(Vector3d& point)
 {
-	Vector3 barycoord;
-
+	Vector3d barycoord;
 	return barycoord;
 }
 
@@ -70,7 +69,7 @@ RayHitResult Triangle::IntersectByRay(Ray& ray)
 
 	Vector3 e1, e2;  //Edge1, Edge2
 	Vector3 P, Q, T;
-	float det, inv_det, u, v;
+	double det, inv_det, u, v;
 
 	//Find vectors for two edges sharing m_vertices[0]
 	e1 = m_vertices[1].m_position - m_vertices[0].m_position;

@@ -131,7 +131,7 @@ BOOL AppWindow::InitWindow(HINSTANCE hInstance, int width, int height)
 	m_pRayTracer = new RayTracer(width, height);
 	m_pScene = new Scene();
 	m_pScene->SetSceneWidth((float)width / (float)height);
-
+	tester = new PerformanceTester(m_pRayTracer,m_pScene);
 	return TRUE;
 }
 
@@ -219,6 +219,14 @@ BOOL AppWindow::KeyUp(WPARAM key)
 	case VK_F6:
 		m_pRayTracer->m_traceflag = (RayTracer::TraceFlags)(RayTracer::TRACE_AMBIENT | RayTracer::TRACE_DIFFUSE_AND_SPEC
 			| RayTracer::TRACE_REFRACTION | RayTracer::TRACE_REFLECTION | RayTracer::TRACE_SHADOW);
+		break;
+	case VK_F8:
+		//run the performance test;
+		tester->RunTests();
+		break;
+	case VK_F9:
+		//run the performance test;
+		tester->RunAATests();
 		break;
 	default:
 		//key pressed is displayable
