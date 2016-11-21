@@ -68,28 +68,7 @@ void Scene::InitDefaultScene()
 	m_sceneObjects.push_back(newobj);
 	m_objectMaterials.push_back(newmat);
 
-	ObjLoader loader;
-	Mesh* mesh = loader.BuildMesh("../Monkey.obj");	
-	for (int i = 0; i < mesh->m_Data.size(); i++) {
-		newobj = mesh->m_Data[i];
-		newmat = new Material();
-		//mat for the box2
-		newmat->SetAmbientColour(0.0, 0.0, 0.0);
-		newmat->SetDiffuseColour(1.0, 1.0, 1.0);
-		newmat->SetSpecularColour(0.0, 0.0, 0.0);
-		newmat->SetReflectivity(0);
-		newmat->SetRefractivity(0);
-		newmat->SetSpecPower(10);
-		Texture* testDiffuse = new Texture();
-		testDiffuse->LoadTextureFromFile("../newBricks.bmp");
-		Texture* normal = new Texture();
-		normal->LoadTextureFromFile("../N_newBricks.bmp");
-		newmat->SetNormalTexture(normal);
-		newmat->SetDiffuseTexture(testDiffuse);
-		newobj->SetMaterial(newmat);
-		m_sceneObjects.push_back(newobj);
-		m_objectMaterials.push_back(newmat);
-	}
+
 
 
 	newobj = new Plane();
@@ -207,6 +186,33 @@ void Scene::InitDefaultScene()
 	static_cast<Plane*>(newobj)->SetPlane(Vector3(-1.0, 0.0, 0.0), -20.0, true);
 	newobj->SetMaterial(newmat);
 	m_sceneObjects.push_back(newobj);
+	
+	Vector3 position(7, 5, 0);
+	ObjLoader loader(position);
+	newobj = new Box(position, 4, 4, 4);
+	newobj->OverridePrimType(Primitive::PRIMTYPE_Bounding);
+	m_sceneObjects.push_back(newobj);
+	
+	Mesh* mesh = loader.BuildMesh("../Monkey.obj");
+	for (int i = 0; i < mesh->m_Data.size(); i++) {
+		newobj = mesh->m_Data[i];
+		newmat = new Material();
+		//mat for the box2
+		newmat->SetAmbientColour(0.0, 0.0, 0.0);
+		newmat->SetDiffuseColour(1.0, 1.0, 1.0);
+		newmat->SetSpecularColour(0.0, 0.0, 0.0);
+		newmat->SetReflectivity(0);
+		newmat->SetRefractivity(0);
+		newmat->SetSpecPower(10);
+		Texture* testDiffuse = new Texture();
+		testDiffuse->LoadTextureFromFile("../newBricks.bmp");
+		newmat->SetDiffuseTexture(testDiffuse);
+		newobj->SetMaterial(newmat);
+		m_sceneObjects.push_back(newobj);
+		m_objectMaterials.push_back(newmat);
+	}
+
+
 
 	Light *newlight = new Light();
 	newlight->SetLightPosition(0, 5, 10.0);
@@ -270,15 +276,20 @@ RayHitResult Scene::IntersectByRay(Ray& ray)
 	RayHitResult tmp;
 
 	std::vector<RayHitResult> hits;
-	bool ignoretris = true;
+	bool Cull_Triangles = true;
 	for (int i = 0; i < m_sceneObjects.size(); i++) {
-		if (m_sceneObjects[i]->m_primtype == Primitive::PRIMTYPE_Triangle) {
+
+		if (m_sceneObjects[i]->m_primtype == Primitive::PRIMTYPE_Triangle && Cull_Triangles == true) {
 			//ignore a triable this frame
 			continue;
 		}
 		tmp = m_sceneObjects[i]->IntersectByRay(ray);
-
+		
 		if (tmp.data) {
+			if (((Primitive*)tmp.data)->m_primtype == Primitive::PRIMTYPE_Bounding) {
+				Cull_Triangles = false;
+				continue;
+			}
 			if (isnan(tmp.point[0]) == false) {
 				if (tmp.t > 0) {
 					hits.push_back(tmp);

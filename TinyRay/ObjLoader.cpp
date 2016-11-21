@@ -2,12 +2,6 @@
 #define _CRT_SECURE_NO_WARNINGS 
 #include <stdio.h>
 
-
-ObjLoader::ObjLoader()
-{
-}
-
-
 ObjLoader::~ObjLoader()
 {
 }
@@ -20,8 +14,8 @@ Mesh* ObjLoader::BuildMesh(const char * path)
 	Load(path, out_vertices, out_uvs, out_normals);
 
 	for (unsigned int i = 0; i < out_vertices.size(); i += 3) {
-		Vector3 Transformation(10, 5, 0);
-		Triangle* newtris = new Triangle(Transformation + out_vertices[i], Transformation + out_vertices[i + 1], Transformation + out_vertices[i + 2]);
+		
+		Triangle* newtris = new Triangle(toffset + out_vertices[i], toffset + out_vertices[i + 1], toffset + out_vertices[i + 2]);
 		newtris->SetNormals(out_normals[i], out_normals[i + 1], out_normals[i + 2]);
 		newtris->SetTexCoords(out_uvs[i], out_uvs[i + 1], out_uvs[i + 2]);
 		tris.push_back(newtris);
@@ -119,6 +113,13 @@ bool ObjLoader::Load(const char * path,
 		Vector3 vertex = verts[vertIndex - 1];
 		Vector3 uv = uvs[uvIndex - 1];
 		Vector3 normal = normals[normalIndex - 1];
+
+		if (xmin > vertex[0]) {
+			xmin = vertex[0];
+		}
+		if (xmax < vertex[0]) {
+			xmax = vertex[0];
+		}
 		//push back to our vectors
 		out_vertices.push_back(vertex);
 		out_uvs.push_back(uv);
