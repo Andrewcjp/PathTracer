@@ -69,6 +69,7 @@ class Scene
 		}
 		
 		void		CleanupScene();
+		void		InitVillage();
 		
 };
 

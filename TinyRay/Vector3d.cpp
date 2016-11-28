@@ -121,7 +121,7 @@ Vector3d Vector3d::Normalise()
 {
 	double length = this->Norm();
 
-	if (length > 1.0e-8)
+	if (length > 1.0e-16)
 	{
 		double invLen = 1.0 / length;
 

@@ -130,7 +130,11 @@ BOOL AppWindow::InitWindow(HINSTANCE hInstance, int width, int height)
 	//allocate the ray tracer and the scene
 	m_pRayTracer = new RayTracer(width, height);
 	m_pScene = new Scene();
+	m_pScene->InitDefaultScene();
 	m_pScene->SetSceneWidth((float)width / (float)height);
+	m_villageScene = new Scene();	
+	m_villageScene->InitVillage();
+	m_villageScene->SetSceneWidth((float)width / (float)height);
 	tester = new PerformanceTester(m_pRayTracer,m_pScene);
 	return TRUE;
 }
@@ -144,8 +148,11 @@ void AppWindow::Render()
 {
 
 	Colour *pBuffer = m_pRayTracer->GetFramebuffer()->GetBuffer();
-	m_pRayTracer->DoRayTrace(m_pScene);
-
+	if (Defaultscene) {
+		m_pRayTracer->DoRayTrace(m_pScene);
+	}else{
+		m_pRayTracer->DoRayTrace(m_villageScene);
+	}
 	glDrawPixels(m_width, m_height, GL_RGB, GL_FLOAT, pBuffer);
 
 	glFlush();
@@ -241,6 +248,16 @@ BOOL AppWindow::KeyUp(WPARAM key)
 			break;
 		case 66://B
 			m_pRayTracer->ToggleSuperSample();
+			break;
+		case 83:
+			if (Defaultscene) {
+				std::cout << "switching to Village Scene" << std::endl;
+				Defaultscene = false;
+			}
+			else {
+				std::cout << "Switching to Default Scene" << std::endl;
+				Defaultscene = true;
+			}
 			break;
 		}
 

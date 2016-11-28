@@ -20,6 +20,7 @@ struct RayHitResult
 	Vector3d point;			// the exact position of the intersection point
 	double t;				//the parametric value of the resulting intersections
 	void* data;				//a pointer to misc. data, e.g. this could be material data for calculating lighting; or the hit object itself
+	float CurrentMedium;
 };
 
 

@@ -16,7 +16,7 @@
 #include <iostream>
 #include <fstream> 
 #include <vector>
-
+#include "Vector3d.h"
 typedef Vector3 Colour;
 
 //class representing a texture in TinyRay

@@ -19,8 +19,8 @@ class Primitive
 {
 private:
 	Material				*m_pMaterial;		//pointer to the material associated to the primitive
-	Colour					m_reflectioncol;	//the current relfection colour.
-	Colour					m_refractedcolour;	// the colour if this is refractive
+	Vector3d					m_reflectioncol;	//the current relfection colour.
+	Vector3d					m_refractedcolour;	// the colour if this is refractive
 protected:
 	float meshScale = 0.1;
 public:
@@ -49,28 +49,34 @@ public:
 		m_pMaterial = pMat;
 	}
 
-	inline Material*		GetMaterial()
+	inline Material* GetMaterial()
 	{
 		return m_pMaterial;
 	}
-	virtual void SetRelfection(Colour col) {
+	virtual void SetRelfection(Vector3d col) {
 		m_reflectioncol = col;
 	}
 	virtual void SetRefraction(Colour col) {
 		m_refractedcolour = col;
 	}
+	void ClearColours() {
+		m_reflectioncol = m_refractedcolour = Vector3d(0, 0, 0);
+	}
 	//point for textures
 	virtual Colour GetDiffuseColour(Vector3 point) {
 		return m_pMaterial->GetDiffuseColour();
 	}
-	Colour GetRelfectionColour() {
-		return m_reflectioncol;
+	Vector3d GetRelfectionColour() {
+		if ( m_reflectioncol.Norm() > 0.1) {
+			return m_reflectioncol;
+		}
+		return Vector3d(0, 0, 0);
 	}
-	Colour GetRefractedColour() {
+	Vector3d GetRefractedColour() {
 		if (m_refractedcolour.Norm() > 0.1) {
 			return m_refractedcolour;
 		}
-		return Colour(1, 1, 1);
+		return Vector3d(1, 1, 1);
 	}
 	virtual Colour GetNormalColour(Vector3 point) {
 		return Colour(0, 0, 0);
