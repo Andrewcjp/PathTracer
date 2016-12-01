@@ -12,9 +12,11 @@
 #include "Plane.h"
 #include "Box.h"
 #include "ObjLoader.h"
+#include "TriMesh.h"
+
 Scene::Scene()
 {
-	
+
 }
 
 
@@ -178,7 +180,7 @@ void Scene::InitDefaultScene()
 	static_cast<Plane*>(newobj)->SetPlane(Vector3(-1.0, 0.0, 0.0), -20.0, true);
 	newobj->SetMaterial(newmat);
 	m_sceneObjects.push_back(newobj);
-	
+
 	Vector3 position(7, 5, 0);
 	ObjLoader loader(position);
 	newobj = new Box(position, 2, 4, 4);
@@ -206,21 +208,21 @@ void Scene::InitDefaultScene()
 	Light *newlight = new Light();
 	newlight->SetLightPosition(0, 5, 10.0);
 	newlight->SetLightColour(0.5, 0.5, 0.5);
-	//	m_lights.push_back(newlight);
+	//m_lights.push_back(newlight);
 		//Create one light source for the scene
 	newlight = new Light();
 	newlight->SetLightPosition(0.0, 15.0, 10.0);
 	m_lights.push_back(newlight);
 
 	//A black background
-	m_background.SetVector(0,0,0);
+	m_background.SetVector(0, 0, 0);
 
 	//default scene width and height;
 	m_sceneWidth = 1.33333333;
 	m_sceneHeight = 1.0;
 
 	//default camera position and look at
-	m_activeCamera.SetPositionAndLookAt(Vector3(0.0, 10.0, 13.0), Vector3(0.0, 7.0, 0.0));
+	m_activeCamera.SetPositionAndLookAt(Vector3(0.0, 10.0, 13.0), Vector3(0.0, 10, 20.0));
 }
 
 void Scene::CleanupScene()
@@ -264,99 +266,130 @@ void Scene::InitVillage()
 	Primitive* newobj = new Box(Vector3(-4.0, 4.0, -20.0), 10.0, 15.0, 4.0);
 	Material* newmat = new Material();
 	//mat for the box1
-	newmat->SetAmbientColour(0.0, 0.0, 0.0);
-	newmat->SetDiffuseColour(1.0, 0.0, 0.0);
-	newmat->SetSpecularColour(1.0, 1.0, 1.0);
-	newmat->SetReflectivity(1);
-	newmat->SetRefractivity(1.1);
-	newmat->SetSpecPower(20);
-	newobj->SetMaterial(newmat);
-	m_sceneObjects.push_back(newobj);
-	m_objectMaterials.push_back(newmat);
+	//newmat->SetAmbientColour(0.0, 0.0, 0.0);
+	//newmat->SetDiffuseColour(1.0, 0.0, 0.0);
+	//newmat->SetSpecularColour(1.0, 1.0, 1.0);
+	//newmat->SetReflectivity(1);
+	//newmat->SetRefractivity(1.1);
+	//newmat->SetSpecPower(20);
+	//newobj->SetMaterial(newmat);
+	//m_sceneObjects.push_back(newobj);
+	//m_objectMaterials.push_back(newmat);
 
-	newobj = new Box(Vector3(4.0, 4.0, -15.0), 4.0, 20.0, 4.0);
-	newmat = new Material();
-	//mat for the box2
-	newmat->SetAmbientColour(0.0, 0.0, 0.0);
-	newmat->SetDiffuseColour(0.8, 0.8, 0.8);
-	newmat->SetSpecularColour(1.0, 1.0, 1.0);
-	newmat->SetReflectivity(1);
-	newmat->SetRefractivity(1.1);
-	newmat->SetSpecPower(20);
-	newobj->SetMaterial(newmat);
-	m_sceneObjects.push_back(newobj);
-	m_objectMaterials.push_back(newmat);
-	//todo: remove
-	newobj = new Box(Vector3(10.0, 4.0, -15.0), 4.0, 4.0, 4.0);
-	newmat = new Material();
-	//mat for the box2
-	newmat->SetAmbientColour(0.0, 0.0, 0.0);
-	newmat->SetDiffuseColour(1, 1, 1);
-	newmat->SetSpecularColour(0.0, 0.0, 0.0);
-	newmat->SetReflectivity(1);
-	newmat->SetRefractivity(0);
-	Texture* spDiffuse = new Texture();
-	spDiffuse->LoadTextureFromFile("../newBricks.bmp");
-	newmat->SetDiffuseTexture(spDiffuse);
-	newmat->SetSpecPower(20);
-	newobj->SetMaterial(newmat);
-	m_sceneObjects.push_back(newobj);
-	m_objectMaterials.push_back(newmat);
+	//newobj = new Box(Vector3(4.0, 4.0, -15.0), 4.0, 20.0, 4.0);
+	//newmat = new Material();
+	////mat for the box2
+	//newmat->SetAmbientColour(0.0, 0.0, 0.0);
+	//newmat->SetDiffuseColour(0.8, 0.8, 0.8);
+	//newmat->SetSpecularColour(1.0, 1.0, 1.0);
+	//newmat->SetReflectivity(1);
+	//newmat->SetRefractivity(1.1);
+	//newmat->SetSpecPower(20);
+	//newobj->SetMaterial(newmat);
+	//m_sceneObjects.push_back(newobj);
+	//m_objectMaterials.push_back(newmat);
+	////todo: remove
+	//newobj = new Box(Vector3(10.0, 4.0, -15.0), 4.0, 4.0, 4.0);
+	//newmat = new Material();
+	////mat for the box2
+	//newmat->SetAmbientColour(0.0, 0.0, 0.0);
+	//newmat->SetDiffuseColour(1, 1, 1);
+	//newmat->SetSpecularColour(0.0, 0.0, 0.0);
+	//newmat->SetReflectivity(1);
+	//newmat->SetRefractivity(0);
+	////Texture* spDiffuse = new Texture();
+	////spDiffuse->LoadTextureFromFile("../newBricks.bmp");
+	////newmat->SetDiffuseTexture(spDiffuse);
+	//newmat->SetSpecPower(20);
+	//newobj->SetMaterial(newmat);
+	//m_sceneObjects.push_back(newobj);
+	//m_objectMaterials.push_back(newmat);
 
-	newobj = new Plane();
-	static_cast<Plane*>(newobj)->SetPlane(Vector3(0.0, 0, 1), -20);
-	newmat = new Material();
-	//mat for the box2
-	newmat->SetAmbientColour(0.0, 0.0, 0.0);
-	newmat->SetDiffuseColour(1, 1, 1);
-	newmat->SetSpecularColour(0.0, 0.0, 0.0);
-	Texture* Diffuse = new Texture();
-	Diffuse->LoadTextureFromFile("../newBricks.bmp");
-	newmat->SetDiffuseTexture(Diffuse);
-	Texture* normal = new Texture();
-	normal->LoadTextureFromFile("../N_newBricks.bmp");
-	newmat->SetNormalTexture(normal);
-	newmat->SetSpecPower(10);
-	newobj->SetMaterial(newmat);
-	m_sceneObjects.push_back(newobj);
-	m_objectMaterials.push_back(newmat);
-	m_Textures.push_back(Diffuse);
+	//newobj = new Plane();
+	//static_cast<Plane*>(newobj)->SetPlane(Vector3(0.0, 0, 1), -20);
+	//newmat = new Material();
+	////mat for the box2
+	//newmat->SetAmbientColour(0.0, 0.0, 0.0);
+	//newmat->SetDiffuseColour(1, 1, 1);
+	//newmat->SetSpecularColour(0.0, 0.0, 0.0);
+	////Texture* Diffuse = new Texture();
+	////Diffuse->LoadTextureFromFile("../sky.bmp");
+	////newmat->SetDiffuseTexture(Diffuse);
+	//////Texture* normal = new Texture();
+	////normal->LoadTextureFromFile("../N_newBricks.bmp");
+	////newmat->SetNormalTexture(normal);
+	//newmat->SetSpecPower(10);
+	//newobj->SetMaterial(newmat);
+	//m_sceneObjects.push_back(newobj);
+	//m_objectMaterials.push_back(newmat);
+	//m_Textures.push_back(Diffuse);
 	//Create sphere 1 and its material
 
-	newobj = new Plane(); //an xz plane at the origin, floor
-	static_cast<Plane*>(newobj)->SetPlane(Vector3(0.0, 1.0, 0.0), 0.0, true);
-	newmat = new Material();
-	newmat->SetAmbientColour(0.0, 0.0, 0.0);
-	newmat->SetDiffuseColour(1.0, 0.0, 0.0);
-	newmat->SetSpecularColour(0.0, 0.0, 0.0);
-	newmat->SetSpecPower(10);
-	newmat->SetCastShadow(false);
-	newobj->SetMaterial(newmat);
-	m_sceneObjects.push_back(newobj);
-	m_objectMaterials.push_back(newmat);
+	//newobj = new Plane(); //an xz plane at the origin, floor
+	//static_cast<Plane*>(newobj)->SetPlane(Vector3(0.0, 1.0, 0.0), 0.0, true);
+	//newmat = new Material();
+	//newmat->SetAmbientColour(0.0, 0.0, 0.0);
+	//newmat->SetDiffuseColour(1.0, 0.0, 0.0);
+	//newmat->SetSpecularColour(0.0, 0.0, 0.0);
+	//newmat->SetSpecPower(10);
+	//newmat->SetCastShadow(false);
+	//newobj->SetMaterial(newmat);
+	//m_sceneObjects.push_back(newobj);
+	//m_objectMaterials.push_back(newmat);
 
-	newobj = new Plane(); //an xz plane 40 units above, ceiling
-	static_cast<Plane*>(newobj)->SetPlane(Vector3(0.0, -1.0, 0.0), -40.0, true);
-	newobj->SetMaterial(newmat);
-	m_sceneObjects.push_back(newobj);
+	//newobj = new Plane(); //an xz plane 40 units above, ceiling
+	//static_cast<Plane*>(newobj)->SetPlane(Vector3(0.0, -1.0, 0.0), -40.0, true);
+	//newobj->SetMaterial(newmat);
+	//m_sceneObjects.push_back(newobj);
+
+	//newmat = new Material();
+	//newmat->SetAmbientColour(0.0, 0.0, 0.0);
+	//newmat->SetDiffuseColour(0.0, 1.0, 0.0);
+	//newmat->SetSpecularColour(0.0, 0.0, 0.0);
+	//newmat->SetSpecPower(10);
+	//newmat->SetCastShadow(false);
+	//newobj->SetMaterial(newmat);
 
 
-	newmat = new Material();
-	newmat->SetAmbientColour(0.0, 0.0, 0.0);
-	newmat->SetDiffuseColour(0.0, 1.0, 0.0);
-	newmat->SetSpecularColour(0.0, 0.0, 0.0);
-	newmat->SetSpecPower(10);
-	newmat->SetCastShadow(false);
-	newobj->SetMaterial(newmat);
+	//newobj = new TriMesh("../windmill.obj");
+	//newmat = new Material();
+	////mat for the box2
+	//newmat->SetAmbientColour(0.0, 0.0, 0.0);
+	//newmat->SetDiffuseColour(1, 1, 1);
+	//newmat->SetSpecularColour(0.0, 0.0, 0.0);
+	//Texture* Windmill_Diffuse = new Texture();
+	//Windmill_Diffuse->LoadTextureFromFile("../windmill_diffuse.bmp");
+	//newmat->SetDiffuseTexture(Windmill_Diffuse);
+	//newmat->SetSpecPower(10);
+	//newobj->SetMaterial(newmat);
+	//m_sceneObjects.push_back(newobj);
+	//m_objectMaterials.push_back(newmat);
+	//m_Textures.push_back(Windmill_Diffuse);
 
+//	newobj = new TriMesh("../terrain.obj");
+//	newmat = new Material();
+//	//mat for the box2
+//	newmat->SetAmbientColour(0.0, 0.0, 0.0);
+//	newmat->SetDiffuseColour(1, 1, 1);
+//	newmat->SetSpecularColour(0.0, 0.0, 0.0);
+//	Texture* terrain_Diffuse = new Texture();
+//	terrain_Diffuse->LoadTextureFromFile("../terrain.bmp");
+//	newmat->SetDiffuseTexture(terrain_Diffuse);
+//	newmat->SetSpecPower(10);
+//	newobj->SetMaterial(newmat);
+////	m_sceneObjects.push_back(newobj);
+//	m_objectMaterials.push_back(newmat);
+//	m_Textures.push_back(terrain_Diffuse);
 
-	Vector3 position(7, 5, 0);
+	Vector3 position(0, 0, 0);
 	ObjLoader loader(position);
-	newobj = new Box(position, 2, 4, 4);
+	newobj = new Box(position, 15, 15, 15);
 	newobj->OverridePrimType(Primitive::PRIMTYPE_Bounding);
 	m_sceneObjects.push_back(newobj);
-	//todo: rotation?
-	Mesh* mesh = loader.BuildMesh("../Monkey.obj");
+
+	Mesh* mesh = loader.BuildMesh("../windmill.obj");
+	Texture* testDiffuse = new Texture();
+	testDiffuse->LoadTextureFromFile("../windmill_diffuse.bmp");
 	for (int i = 0; i < mesh->m_Data.size(); i++) {
 		newobj = mesh->m_Data[i];
 		newmat = new Material();
@@ -367,13 +400,86 @@ void Scene::InitVillage()
 		newmat->SetReflectivity(0);
 		newmat->SetRefractivity(0);
 		newmat->SetSpecPower(10);
-		Texture* testDiffuse = new Texture();
-		testDiffuse->LoadTextureFromFile("../newBricks.bmp");
 		newmat->SetDiffuseTexture(testDiffuse);
 		newobj->SetMaterial(newmat);
 		m_sceneObjects.push_back(newobj);
 		m_objectMaterials.push_back(newmat);
 	}
+	Vector3 translation(0, 0, 0);
+	ObjLoader churchloader(translation);
+	newobj = new Box(translation, 15, 15, 15);
+	newobj->OverridePrimType(Primitive::PRIMTYPE_Bounding);
+	m_sceneObjects.push_back(newobj);
+
+	Mesh* churchmesh = churchloader.BuildMesh("../house.obj");
+	Texture* churchDiffuse = new Texture();
+	churchDiffuse->LoadTextureFromFile("../house_diffuse.bmp");
+	for (int i = 0; i < churchmesh->m_Data.size(); i++) {
+		newobj = churchmesh->m_Data[i];
+		newmat = new Material();
+		//mat for the box2
+		newmat->SetAmbientColour(0.0, 0.0, 0.0);
+		newmat->SetDiffuseColour(1.0, 1.0, 1.0);
+		newmat->SetSpecularColour(0.0, 0.0, 0.0);
+		newmat->SetReflectivity(0);
+		newmat->SetRefractivity(0);
+		newmat->SetSpecPower(10);
+		newmat->SetDiffuseTexture(churchDiffuse);
+		newobj->SetMaterial(newmat);
+		m_sceneObjects.push_back(newobj);
+		m_objectMaterials.push_back(newmat);
+	}
+	Vector3 traintranslation(0, 0, -10);
+	ObjLoader terrainloader(traintranslation);
+	newobj = new Box(traintranslation, 150, 150, 150);
+	newobj->OverridePrimType(Primitive::PRIMTYPE_Bounding);
+	m_sceneObjects.push_back(newobj);
+
+	Mesh* Terrain = terrainloader.BuildMesh("../terrain.obj");
+	Texture* trDiffuse = new Texture();
+	trDiffuse->LoadTextureFromFile("../terrain.bmp");
+	for (int i = 0; i < Terrain->m_Data.size(); i++) {
+		newobj = Terrain->m_Data[i];
+		newmat = new Material();
+		//mat for the box2
+		newmat->SetAmbientColour(0.0, 0.0, 0.0);
+		newmat->SetDiffuseColour(1.0, 1.0, 1.0);
+		newmat->SetSpecularColour(0.0, 0.0, 0.0);
+		newmat->SetReflectivity(0);
+		newmat->SetRefractivity(0);
+		newmat->SetSpecPower(10);
+		newmat->SetDiffuseTexture(trDiffuse);
+		newobj->SetMaterial(newmat);
+		m_sceneObjects.push_back(newobj);
+		m_objectMaterials.push_back(newmat);
+	}
+
+	//Vector3 fightyertranslation(0, 15, -25);
+	//ObjLoader fighterloader(fightyertranslation);
+	//newobj = new Box(fightyertranslation, 150, 150, 150);
+	//newobj->OverridePrimType(Primitive::PRIMTYPE_Bounding);
+	//m_sceneObjects.push_back(newobj);
+
+	//Mesh* fighter = fighterloader.BuildMesh("../space_frigate_6.obj");
+	////Texture* trDiffuse = new Texture();
+	////trDiffuse->LoadTextureFromFile("../terrain.bmp");
+	//for (int i = 0; i < fighter->m_Data.size(); i++) {
+	//	newobj = fighter->m_Data[i];
+	//	newmat = new Material();
+	//	//mat for the box2
+	//	newmat->SetAmbientColour(0.0, 0.0, 0.0);
+	//	newmat->SetDiffuseColour(1.0, 1.0, 1.0);
+	//	newmat->SetSpecularColour(0.0, 0.0, 0.0);
+	//	newmat->SetReflectivity(0);
+	//	newmat->SetRefractivity(0);
+	//	newmat->SetSpecPower(10);
+	////	newmat->SetDiffuseTexture(trDiffuse);
+	//	newobj->SetMaterial(newmat);
+	//	m_sceneObjects.push_back(newobj);
+	//	m_objectMaterials.push_back(newmat);
+	//}
+
+
 	Light *newlight = new Light();
 	newlight->SetLightPosition(0, 5, 10.0);
 	newlight->SetLightColour(0.5, 0.5, 0.5);
@@ -391,7 +497,7 @@ void Scene::InitVillage()
 	m_sceneHeight = 1.0;
 
 	//default camera position and look at
-	m_activeCamera.SetPositionAndLookAt(Vector3(0.0, 10.0, 13.0), Vector3(0.0, 7.0, 0.0));
+	m_activeCamera.SetPositionAndLookAt(Vector3(0.0, 10, 20), Vector3(0.0, 7.0, 0.0));
 }
 
 
@@ -409,7 +515,7 @@ RayHitResult Scene::IntersectByRay(Ray& ray)
 			continue;
 		}
 		tmp = m_sceneObjects[i]->IntersectByRay(ray);
-		
+
 		if (tmp.data) {
 			if (((Primitive*)tmp.data)->m_primtype == Primitive::PRIMTYPE_Bounding) {
 				Cull_Triangles = false;
@@ -423,7 +529,7 @@ RayHitResult Scene::IntersectByRay(Ray& ray)
 		}
 	}
 	if (hits.size() == 0) {
-		printf("No Hits\n");
+	//	printf("No Hits\n");
 		return result;
 	}
 	for (int i = 0; i < hits.size() - 1; i++) {

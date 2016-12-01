@@ -121,55 +121,66 @@ Colour Texture::GetTexelColour(double u, double v)
 	return colour;
 }
 
-void Texture::LoadTextureFromFile(char * filename)
+
+
+void Texture::LoadTextureFromFile(char * filename, bool tga)
 {
-
-
-	//open file
-	std::fstream hFile(filename, std::ios::in | std::ios::binary);
-	if (!hFile.is_open()) {
-		std::cout << "Error: File " << filename << " Not Found." << std::endl;
-		mImage = NULL;
-		return;
-	}
-
-	hFile.seekg(0, std::ios::end);
-	std::size_t Length = hFile.tellg();
-	hFile.seekg(0, std::ios::beg);
-	std::vector<std::uint8_t> FileInfo(Length);
-	hFile.read(reinterpret_cast<char*>(FileInfo.data()), 54);//wtf?
-
-	if (FileInfo[0] != 'B' && FileInfo[1] != 'M')
+	if (tga == true)
 	{
-		hFile.close();
-		std::cout << "Error: Invalid File Format. Bitmap Required." << std::endl;
-		mImage = NULL;
-		return;
+		/*int sizey, sizex, bpp = 0;
+		if (ImageIO::LoadTGA(filename, &mImage, &sizey, &sizex, &bpp, &mChannels) == E_IMAGEIO_ERROR) {
+			printf("Read Error\n");
+		}*/
 	}
-
-	if (FileInfo[28] != 24 && FileInfo[28] != 32)
+	else
 	{
-		hFile.close();
-		std::cout << "Error: Invalid File Format. 24 or 32 bit Image Required." << std::endl;
-		mImage = NULL;
-		return;
-	}
-	//todo: support 32 bit with alpha
-	//mChannels = FileInfo[28];
-	mChannels = 3;
-	mWidth = FileInfo[18] + (FileInfo[19] << 8);
-	mHeight = FileInfo[22] + (FileInfo[23] << 8);
+		//open file
+		std::fstream hFile(filename, std::ios::in | std::ios::binary);
+		if (!hFile.is_open()) {
+			std::cout << "Error: File " << filename << " Not Found." << std::endl;
+			mImage = NULL;
+			return;
+		}
 
-	std::uint32_t PixelsOffset = FileInfo[10] + (FileInfo[11] << 8);
-	std::uint32_t size = ((mWidth * FileInfo[28] + 31) / 32) * 4 * mHeight;
-	Pixels.resize(size);
-	msize = size;
-	hFile.seekg(PixelsOffset, std::ios::beg);
-	hFile.read(reinterpret_cast<char*>(Pixels.data()), size);
-	hFile.close();
-	mImage = new unsigned char[size];
-	for (int i = 0; i < Pixels.size(); i++) {
-		*(mImage + i) = Pixels[i];
+		hFile.seekg(0, std::ios::end);
+		std::size_t Length = hFile.tellg();
+		hFile.seekg(0, std::ios::beg);
+		std::vector<std::uint8_t> FileInfo(Length);
+		hFile.read(reinterpret_cast<char*>(FileInfo.data()), 54);
+
+		if (FileInfo[0] != 'B' && FileInfo[1] != 'M')
+		{
+			hFile.close();
+			std::cout << "Error: Invalid File Format. Bitmap Required." << std::endl;
+			mImage = NULL;
+			return;
+		}
+
+		if (FileInfo[28] != 24 && FileInfo[28] != 32)
+		{
+			hFile.close();
+			std::cout << "Error: Invalid File Format. 24 or 32 bit Image Required." << std::endl;
+			mImage = NULL;
+			return;
+		}
+		//todo: support 32 bit with alpha
+		mChannels = FileInfo[28]/8;
+	//	mChannels = 3;
+		mWidth = FileInfo[18] + (FileInfo[19] << 8);
+		mHeight = FileInfo[22] + (FileInfo[23] << 8);
+
+		std::uint32_t PixelsOffset = FileInfo[10] + (FileInfo[11] << 8);
+		std::uint32_t size = ((mWidth * FileInfo[28] + 31) / 32) * 4 * mHeight;
+		Pixels.resize(size);
+		msize = size;
+		hFile.seekg(PixelsOffset, std::ios::beg);
+		hFile.read(reinterpret_cast<char*>(Pixels.data()), size);
+		hFile.close();
+		mImage = new unsigned char[size];
+		for (int i = 0; i < Pixels.size(); i++) {
+			*(mImage + i) = Pixels[i];
+		}
 	}
+
 
 }

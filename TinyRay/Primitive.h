@@ -31,7 +31,8 @@ public:
 		PRIMTYPE_Sphere, //sphere
 		PRIMTYPE_Triangle, //generic triangle
 		PRIMTYPE_Box, //box
-		PRIMTYPE_Bounding
+		PRIMTYPE_Bounding,
+		PRIMTYPE_TRIMESH
 	};
 	void OverridePrimType(PRIMTYPE type) {
 		m_primtype = type;

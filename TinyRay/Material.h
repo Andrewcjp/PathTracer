@@ -33,7 +33,7 @@ private:
 public:
 	unsigned int	mWidth;			//width of the image
 	unsigned int    mHeight;		//height of the image
-	unsigned int    mChannels = 3;		//number of channels in the image either 3 or 4, i.e. RGB or RGBA
+	 int    mChannels = 3;		//number of channels in the image either 3 or 4, i.e. RGB or RGBA
 	unsigned char*	mImage;			//image data
 	int msize;
 	Colour GetBiLinearFilteredColour(double u, double v);
@@ -54,7 +54,7 @@ public:
 	Colour GetTexelColour(double u, double v);
 	
 	//todo: covert to format
-	void LoadTextureFromFile(char* filename);
+	void LoadTextureFromFile(char* filename,bool tga = false);
 };
 
 //Class representing a material in TinyRay

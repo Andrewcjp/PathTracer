@@ -139,7 +139,7 @@
       <PreprocessorDefinitions>NDEBUG;_WINDOWS;%(PreprocessorDefinitions);WINDOWS;_CRT_SECURE_NO_WARNINGS</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
       <OpenMPSupport>true</OpenMPSupport>
-      <AdditionalIncludeDirectories>C:\Users\AANdr\Dropbox\UNI\Year2\repo\tinyray\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -157,6 +157,7 @@
     <ClCompile Include="Material.cpp" />
     <ClCompile Include="matrix3x3.cpp" />
     <ClCompile Include="Mesh.cpp" />
+    <ClCompile Include="OBJFileReader.cpp" />
     <ClCompile Include="ObjLoader.cpp" />
     <ClCompile Include="PerformanceTester.cpp" />
     <ClCompile Include="TestApplication.cpp" />
@@ -168,6 +169,7 @@
     <ClCompile Include="Sphere.cpp" />
     <ClCompile Include="TinyRayMain.cpp" />
     <ClCompile Include="Triangle.cpp" />
+    <ClCompile Include="TriMesh.cpp" />
     <ClCompile Include="Vector2.cpp" />
     <ClCompile Include="Vector3.cpp" />
     <ClCompile Include="Vector3d.cpp" />
@@ -181,6 +183,7 @@
     <ClInclude Include="Material.h" />
     <ClInclude Include="matrix3x3.h" />
     <ClInclude Include="Mesh.h" />
+    <ClInclude Include="OBJFileReader.h" />
     <ClInclude Include="ObjLoader.h" />
     <ClInclude Include="PerformanceTester.h" />
     <ClInclude Include="TestApplication.h" />
@@ -195,6 +198,7 @@
     <ClInclude Include="targetver.h" />
     <ClInclude Include="TinyRayMain.h" />
     <ClInclude Include="Triangle.h" />
+    <ClInclude Include="TriMesh.h" />
     <ClInclude Include="Vector2.h" />
     <ClInclude Include="Vector3.h" />
     <ClInclude Include="Vector3d.h" />

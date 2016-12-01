@@ -81,6 +81,12 @@
     <ClCompile Include="Boundingbox.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="TriMesh.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="OBJFileReader.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Box.h">
@@ -156,6 +162,12 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Boundingbox.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="TriMesh.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="OBJFileReader.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

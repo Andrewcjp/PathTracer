@@ -235,10 +235,11 @@ Colour RayTracer::TraceScene(Scene* pScene, Ray& ray, Colour incolour, int trace
 	//Intersect the ray with the scene
 	//TODO: Scene::IntersectByRay needs to be implemented first
 	result = pScene->IntersectByRay(ray);
-	Primitive* prim = (Primitive*)result.data;
-	Material* mat = prim->GetMaterial();
+	
 	if (result.data) //the ray has hit something
 	{
+		Primitive* prim = (Primitive*)result.data;
+		Material* mat = prim->GetMaterial();
 		//TODO:1. Non-recursive ray tracing:
 		//	 When a ray intersect with an objects, determine the colour at the intersection point
 		//	 using CalculateLighting		
@@ -266,7 +267,8 @@ Colour RayTracer::TraceScene(Scene* pScene, Ray& ray, Colour incolour, int trace
 				outcolour = CalculateLighting(light_list, &cameraPosition, &result);
 			}
 		}
-		else {
+		else
+		{
 			outcolour = CalculateLighting(light_list, &cameraPosition, &result);
 		}
 		//todo: refacted light colours our bound light
@@ -298,16 +300,15 @@ Colour RayTracer::TraceScene(Scene* pScene, Ray& ray, Colour incolour, int trace
 		if (m_traceflag & TRACE_SHADOW)
 		{
 			//TODO: trace the shadow ray from the intersection point	
-			std::vector<Light*>::iterator lit_iter = light_list->begin();
 			float shadowAccum = 0;
-			int count = 2;
+			int count = 4;
 			int samplecount = count * count;
 			double tlight = 0;//calculate where our light is along our ray.
 			double bias = 0.001;//quite a high bias
 			for (int i = 0; i < light_list->size(); i++) {
 				Ray shadowray = Ray();
 				RayHitResult shadowresult;
-				Light* clight = *(lit_iter + i);
+				Light* clight = (*light_list)[i];
 				//we will check the pixels around our centre line
 				//then avg the result
 				//x need to bit tangent and y is tangent

@@ -27,7 +27,7 @@ class AppWindow
 		RayTracer	*m_pRayTracer;
 		Scene		*m_pScene;
 		Scene		*m_villageScene;
-		bool Defaultscene = false;
+		bool Defaultscene = true;
 		PerformanceTester* tester;   // custom tester 
 protected:
 
