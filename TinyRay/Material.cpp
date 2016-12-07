@@ -108,12 +108,11 @@ Colour Texture::GetTexelColour(double u, double v)
 		texel_loc = msize;//clamps the texture
 	}
 	if (texel_loc < 0) {
-		texel_loc = 0;
+		texel_loc = 0;//if the texture ptr is STILL out of range
 	}
 	unsigned char* comp = mImage + texel_loc;
-	//bmp not rgb
-	//todo remove this
-	//bgr
+	//.bmp is not RGB
+	//its BGR for some reason
 	colour[0] = *(comp + 2) / 255.0f;
 	colour[1] = *(comp + 1) / 255.0f;
 	colour[2] = *(comp) / 255.0f;
@@ -126,7 +125,9 @@ Colour Texture::GetTexelColour(double u, double v)
 void Texture::LoadTextureFromFile(char * filename, bool tga)
 {
 	if (tga == true)
-	{
+	{		
+		//DID SOMEONE forget to implement the TGA loader!?
+
 		/*int sizey, sizex, bpp = 0;
 		if (ImageIO::LoadTGA(filename, &mImage, &sizey, &sizex, &bpp, &mChannels) == E_IMAGEIO_ERROR) {
 			printf("Read Error\n");
@@ -141,13 +142,16 @@ void Texture::LoadTextureFromFile(char * filename, bool tga)
 			mImage = NULL;
 			return;
 		}
-
+		//seek to the EOF
 		hFile.seekg(0, std::ios::end);
+		//get the positon in the stream
+		//we now know the length of file!
 		std::size_t Length = hFile.tellg();
+		//seek to the begining again
 		hFile.seekg(0, std::ios::beg);
 		std::vector<std::uint8_t> FileInfo(Length);
 		hFile.read(reinterpret_cast<char*>(FileInfo.data()), 54);
-
+		//read file info bits to ensure the BMP is one we can process
 		if (FileInfo[0] != 'B' && FileInfo[1] != 'M')
 		{
 			hFile.close();
@@ -163,20 +167,22 @@ void Texture::LoadTextureFromFile(char * filename, bool tga)
 			mImage = NULL;
 			return;
 		}
-		//todo: support 32 bit with alpha
+
 		mChannels = FileInfo[28]/8;
-	//	mChannels = 3;
 		mWidth = FileInfo[18] + (FileInfo[19] << 8);
 		mHeight = FileInfo[22] + (FileInfo[23] << 8);
-
+		//calulate the offset to pixels so we dont read the fileinfo as pixels
 		std::uint32_t PixelsOffset = FileInfo[10] + (FileInfo[11] << 8);
 		std::uint32_t size = ((mWidth * FileInfo[28] + 31) / 32) * 4 * mHeight;
 		Pixels.resize(size);
 		msize = size;
+		//start reading from the start of the pixel infromation 
 		hFile.seekg(PixelsOffset, std::ios::beg);
+		//reinterpret_cast ensures that we get our data back (ISH i mean its C/C++ so anything could happen)
 		hFile.read(reinterpret_cast<char*>(Pixels.data()), size);
 		hFile.close();
 		mImage = new unsigned char[size];
+		//read them pixels
 		for (int i = 0; i < Pixels.size(); i++) {
 			*(mImage + i) = Pixels[i];
 		}

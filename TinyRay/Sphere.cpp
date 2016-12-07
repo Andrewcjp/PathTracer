@@ -41,13 +41,13 @@ RayHitResult Sphere::IntersectByRay(Ray& ray)
 {
 	RayHitResult result = Ray::s_defaultHitResult;
 
-	Vector3 negateRay = ray.GetRay();
+	Vector3d negateRay = ray.GetRay();
 
 	negateRay[0] = -ray.GetRay()[0];
 	negateRay[1] = -ray.GetRay()[1];
 	negateRay[2] = -ray.GetRay()[2];
 
-	Vector3 centreToEye = ray.GetRayStart() - this->GetCentre();
+	Vector3d centreToEye = ray.GetRayStart() - this->GetCentre();
 
 	double dotRayCentreToEye = ray.GetRay().DotProduct(centreToEye);
 	double dotRayRay = ray.GetRay().DotProduct(ray.GetRay());
@@ -70,7 +70,7 @@ RayHitResult Sphere::IntersectByRay(Ray& ray)
 	result.t = omega_plus < omega_minus ? omega_plus : omega_minus;
 	result.data = this;
 
-	Vector3 intersection_point = ray.GetRayStart() + ray.GetRay()*result.t;
+	Vector3d intersection_point = ray.GetRayStart() + ray.GetRay()*result.t;
 	result.point = intersection_point;
 	result.normal = (intersection_point - m_centre).Normalise();
 

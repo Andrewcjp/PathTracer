@@ -119,9 +119,9 @@ static int secondPassOBJRead(const char* filename, int nVerts, int nNormals, int
 			int index3;
 			int index4;
 
-			int nidx1, nidx2, nidx3, nidx4;
+			int nidx1, nidx2, nidx3;
 
-			int tidx1, tidx2, tidx3, tidx4;
+			int tidx1, tidx2, tidx3;
 
 			if (sscanf(v, "%*s %d/%d/%d %d/%d/%d %d/%d/%d", &index1, &tidx1, &nidx1,
 				&index2, &tidx2, &nidx2,

@@ -149,13 +149,11 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="Boundingbox.cpp" />
     <ClCompile Include="Box.cpp" />
     <ClCompile Include="Camera.cpp" />
     <ClCompile Include="Framebuffer.cpp" />
     <ClCompile Include="Light.cpp" />
     <ClCompile Include="Material.cpp" />
-    <ClCompile Include="matrix3x3.cpp" />
     <ClCompile Include="Mesh.cpp" />
     <ClCompile Include="OBJFileReader.cpp" />
     <ClCompile Include="ObjLoader.cpp" />
@@ -175,13 +173,11 @@
     <ClCompile Include="Vector3d.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Boundingbox.h" />
     <ClInclude Include="Box.h" />
     <ClInclude Include="Camera.h" />
     <ClInclude Include="Framebuffer.h" />
     <ClInclude Include="Light.h" />
     <ClInclude Include="Material.h" />
-    <ClInclude Include="matrix3x3.h" />
     <ClInclude Include="Mesh.h" />
     <ClInclude Include="OBJFileReader.h" />
     <ClInclude Include="ObjLoader.h" />

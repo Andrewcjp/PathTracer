@@ -22,7 +22,7 @@ private:
 	Vector3d					m_reflectioncol;	//the current relfection colour.
 	Vector3d					m_refractedcolour;	// the colour if this is refractive
 protected:
-	float meshScale = 0.1;
+	float meshScale = 0.1f;
 public:
 	//enum for primitive types
 	enum PRIMTYPE

@@ -37,6 +37,7 @@ void PrintUsage()
 	printf("N: Toggle Normal Mapping\n");
 	printf("M: Toggle Soft Shadows\n");
 	printf("B: Toggle Super Sampling\n");
+	printf("S: Switches to Scene 2\n");
 }
 
 void ErrorExit(LPTSTR lpszFunction)

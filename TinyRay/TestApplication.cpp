@@ -61,8 +61,7 @@ TestApplication* TestApplication::CreateApplication(HINSTANCE hinst)
 		s_oglapp->MyRegisterClass(hinst);
 
 		//Now create an OGLWindow for this application
-		s_oglapp->CreateApplicationWindow(640,360);
-		//s_oglapp->CreateApplicationWindow(1280,720);
+		s_oglapp->CreateApplicationWindow(1280,720);
 	}
 
 	return s_oglapp;

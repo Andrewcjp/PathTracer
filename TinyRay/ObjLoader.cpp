@@ -1,5 +1,5 @@
 #include "ObjLoader.h"
-#define _CRT_SECURE_NO_WARNINGS 
+
 #include <stdio.h>
 
 ObjLoader::~ObjLoader()
@@ -12,14 +12,15 @@ Mesh* ObjLoader::BuildMesh(const char * path)
 	std::vector<Vector3>  out_uvs;
 	std::vector<Vector3>  out_normals;
 	Load(path, out_vertices, out_uvs, out_normals);
-
+	//write all of our data to triangles
 	for (unsigned int i = 0; i < out_vertices.size(); i += 3) {
-		
+		//apply the offset to each triangle
 		Triangle* newtris = new Triangle(toffset + out_vertices[i], toffset + out_vertices[i + 1], toffset + out_vertices[i + 2]);
 		newtris->SetNormals(out_normals[i], out_normals[i + 1], out_normals[i + 2]);
 		newtris->SetTexCoords(out_uvs[i], out_uvs[i + 1], out_uvs[i + 2]);
 		tris.push_back(newtris);
 	}
+	//return a mesh object
 	return new Mesh(tris);
 }
 
@@ -39,6 +40,7 @@ bool ObjLoader::Load(const char * path,
 	std::vector<Vector3> uvs;
 	std::vector<Vector3> normals;
 	FILE * file;
+	//Safely(ish) open our OBJ file
 	errno_t err = fopen_s(&file, path, "r");
 	if (err != 0) {
 		printf("Failed to Open File\n");
@@ -60,6 +62,7 @@ bool ObjLoader::Load(const char * path,
 		}
 		else if (strcmp(line, "vt") == 0) {
 			//we have encoutered a vt value containg uv value for diffrant image formats this might need to be changed
+			//ie for a DDS the UVS and flipped
 			float x, y = 0;
 			fscanf(file, "%f %f\n", &x, &y);
 			Vector3 uv(x, y, 0);

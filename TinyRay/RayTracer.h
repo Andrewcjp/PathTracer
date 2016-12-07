@@ -46,7 +46,7 @@ private:
 	bool Softshadows = false;
 	bool normalmapping = false;
 	bool AmbientOcclusion = false;
-	int AAFactor = 3;
+	int AAFactor = 2;
 public:
 
 	enum TraceFlags
